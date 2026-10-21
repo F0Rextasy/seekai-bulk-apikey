@@ -1,0 +1,11 @@
+# never commit credentials or run output
+keys.txt
+proxies.txt
+accounts.json
+launcher.config.json
+out/
+*.log
+.DS_Store
+node_modules/
+.env
+.env.*
