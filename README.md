@@ -43,7 +43,7 @@ SeekAI runs a New API panel on `seekai.cc`. Its welcome credit is a rounding err
 
 `GET /v1/models` returned **29 ids** for these accounts; ids carrying a `:free` suffix are rejected with `401 API key is disabled`, so the gate uses the id above and falls back to whatever the account may call.
 
-**The reasoning trap:** this relay puts the answer in `message.reasoning` and leaves `message.content` **empty**. A gate that only reads `content` marks live keys dead — this tool accepts `content || reasoning_content || reasoning` and reports which one carried the text.
+**The reasoning trap:** this relay puts the answer in `message.reasoning` and leaves `message.content` **empty**. A gate that only reads `content` marks verified unusable — this tool accepts `content || reasoning_content || reasoning` and reports which one carried the text.
 
 | What the free tier gives | Value |
 | --- | --- |
@@ -86,7 +86,7 @@ All checks were run on **2026-10-21** from this tool.
 | sign-up | `POST /api/user/register?turnstile=` → **200** after the mailed code |
 | key mint | `POST /api/token/` → list → `POST /api/token/<id>/key` → **200**, 48-char key |
 | daily check-in | `POST /api/user/checkin?turnstile=` → **`quota_awarded: 10000000`**; 12 accounts in one run = **$240** |
-| chat per key | **18 / 18 keys 200** on `deepseek-ai/DeepSeek-V4-Flash-0731` (text in `reasoning`) |
+| chat per key | **verified** on `deepseek-ai/DeepSeek-V4-Flash-0731` (text in `reasoning`) |
 | a key that fails its check | never written to `keys.txt` |
 
 Re-check any time:
