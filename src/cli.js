@@ -383,10 +383,13 @@ async function vetExit(exit) {
   const t0 = Date.now();
   const su = await exitFetch(exit, `${SITE}/sign-in`, { timeoutMs: 25000, redirects: 3 });
   if (su.status !== 200) return { ok: false, why: `sign-in ${su.status}` };
-  if (!/password|sign in|登录/i.test(su.body || '')) return { ok: false, why: 'sign-in did not render' };
+  // 2026-10-22: the panel now serves a client-rendered SPA shell — accept it (the Chrome screen at mint is the real gate).
+  const spa = /id=["']root["']/.test(su.body || '') && /\/static\/js\//.test(su.body || '');
+  if (!/password|sign in|登录/i.test(su.body || '') && !spa) return { ok: false, why: 'sign-in did not render' };
   let script = { status: 0 };
   try {
-    script = await exitFetch(exit, 'https://challenges.cloudflare.com/turnstile/v0/api.js', { timeoutMs: 25000 });
+    // 2026-10-22: CF 302s the bare api.js to a versioned path — follow it.
+    script = await exitFetch(exit, 'https://challenges.cloudflare.com/turnstile/v0/api.js', { timeoutMs: 25000, redirects: 3 });
   } catch (e) {
     return { ok: false, why: `turnstile script unreachable: ${String(e.message).slice(0, 50)}` };
   }
@@ -840,6 +843,14 @@ async function launchChrome(exit) {
       cleanup();
     },
   };
+}
+
+/** Left-click at a viewport point — the widget nudge inside widgetToken. */
+async function clickAt(cdp, sid, x, y) {
+  const p = { x: Math.round(x), y: Math.round(y), button: 'left', clickCount: 1 };
+  await cdp.send('Input.dispatchMouseEvent', { ...p, type: 'mousePressed' }, sid);
+  await sleep(70);
+  await cdp.send('Input.dispatchMouseEvent', { ...p, type: 'mouseReleased' }, sid);
 }
 
 class Page {
