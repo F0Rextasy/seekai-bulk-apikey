@@ -18,6 +18,7 @@
 [![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
 [![Models](https://img.shields.io/badge/models-1%20verified-412991?style=for-the-badge)](https://seekai.cc)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
+[![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 
 [🛠 クイックスタート](#-quick-start) · [✅ 検証済み](#-verified-working--every-key-is-tested) · [🧭 仕組み](#-how-it-works) · [🤖 モデルと無料枠](#-models--free-tier) · [⚙️ オプション](#️-cli-options) · [🛰️ プロキシ](#️-behind-a-proxy) · [🔌 9Router](#-connect-to-9router) · [🐞 問題](#-issues)
 
@@ -156,6 +157,14 @@ node src/cli.js --connect-9router --9router-base http://localhost:20128 --9route
 
 デフォルト: `--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。モデルは `seekai/<model id>` として提供されます。
 
+## 🔌 OmniRoute に接続
+
+```bash
+node src/cli.js --connect-omniroute                 # defaults: http://localhost:20128, password 123456
+node src/cli.js --connect-omniroute --omniroute-base http://localhost:20128 --omniroute-password 123456
+```
+
+デフォルト: `--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。モデルは `seekai/<model id>` として提供されます。
 ## 🐞 問題
 
 SeekAI が登録フォーム、Turnstile サイトキー（`0x4AAAAAAEcpuQE_WXc4ZfG8`）、チェックイン報酬、またはモデルカタログを変更した場合、ツールはそこで停止し、その旨を報告します。コマンドと正確な出力を添えて **[issue を開いてください](../../issues)**。

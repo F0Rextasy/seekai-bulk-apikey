@@ -18,6 +18,7 @@
 [![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
 [![Models](https://img.shields.io/badge/models-1%20verified-412991?style=for-the-badge)](https://seekai.cc)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
+[![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 
 [🛠 빠른 시작](#-quick-start) · [✅ 검증됨](#-verified-working--every-key-is-tested) · [🧭 작동 방식](#-how-it-works) · [🤖 모델 & 무료 티어](#-models--free-tier) · [⚙️ 옵션](#️-cli-options) · [🛰️ 프록시](#️-behind-a-proxy) · [🔌 9Router](#-connect-to-9router) · [🐞 이슈](#-issues)
 
@@ -156,6 +157,14 @@ node src/cli.js --connect-9router --9router-base http://localhost:20128 --9route
 
 기본값: `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepseek-ai/DeepSeek-V4-Flash-0731`. 모델은 `seekai/<model id>`로 제공됩니다.
 
+## 🔌 OmniRoute에 연결
+
+```bash
+node src/cli.js --connect-omniroute                 # defaults: http://localhost:20128, password 123456
+node src/cli.js --connect-omniroute --omniroute-base http://localhost:20128 --omniroute-password 123456
+```
+
+기본값: `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepseek-ai/DeepSeek-V4-Flash-0731`. 모델은 `seekai/<model id>`로 제공됩니다.
 ## 🐞 이슈
 
 SeekAI가 가입 양식, Turnstile 사이트 키(`0x4AAAAAAEcpuQE_WXc4ZfG8`), 체크인 보상 또는 모델 카탈로그를 변경하면, 도구는 그 지점에서 멈추고 그렇게 알립니다. 명령과 정확한 출력을 포함해 **[이슈를 열어주세요](../../issues)**.

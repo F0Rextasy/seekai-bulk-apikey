@@ -78,6 +78,11 @@ node src/cli.js --screen         # HTTP screen of your exit list
 
 ## ✅ Verified working — every key is tested
 
+> **Quality gates.** Every key here passed a live `chat-200` before it was written to `keys.txt`
+> (dead keys are never shipped). Router combos follow the same rule at the model level: an entry is
+> added **only if the model answers `chat-200` and can call tools** — a model without tool support,
+> a dead key or a dead provider is dropped instead of added. Works with **9Router and OmniRoute**.
+
 All checks were run on **2026-10-21** from this tool.
 
 | Check | Result |
@@ -156,7 +161,6 @@ node src/cli.js --connect-9router --9router-base http://localhost:20128 --9route
 ```
 
 Defaults: `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepseek-ai/DeepSeek-V4-Flash-0731`. Models are served as `seekai/<model id>`.
-
 
 ## 🔌 Connect to OmniRoute
 

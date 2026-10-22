@@ -18,6 +18,7 @@
 [![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
 [![Models](https://img.shields.io/badge/models-1%20verified-412991?style=for-the-badge)](https://seekai.cc)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
+[![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 
 [🛠 快速开始](#-quick-start) · [✅ 已验证](#-verified-working--every-key-is-tested) · [🧭 工作原理](#-how-it-works) · [🤖 模型与免费额度](#-models--free-tier) · [⚙️ 选项](#️-cli-options) · [🛰️ 代理](#️-behind-a-proxy) · [🔌 9Router](#-connect-to-9router) · [🐞 问题反馈](#-issues)
 
@@ -156,6 +157,14 @@ node src/cli.js --connect-9router --9router-base http://localhost:20128 --9route
 
 默认值：`--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。模型以 `seekai/<model id>` 形式提供。
 
+## 🔌 连接到 OmniRoute
+
+```bash
+node src/cli.js --connect-omniroute                 # defaults: http://localhost:20128, password 123456
+node src/cli.js --connect-omniroute --omniroute-base http://localhost:20128 --omniroute-password 123456
+```
+
+默认值：`--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。模型以 `seekai/<model id>` 形式提供。
 ## 🐞 问题反馈
 
 如果 SeekAI 更改了它的注册表单、Turnstile 站点密钥（`0x4AAAAAAEcpuQE_WXc4ZfG8`）、签到奖励或模型目录，工具会停在那里并说明原因。请带上命令和确切输出**[提交 issue](../../issues)**。
