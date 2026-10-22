@@ -18,6 +18,7 @@
 [![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
 [![Models](https://img.shields.io/badge/models-1%20verified-412991?style=for-the-badge)](https://seekai.cc)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
+[![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 
 [🛠 Quick start](#-quick-start) · [✅ Verified](#-verified-working--every-key-is-tested) · [🧭 How it works](#-how-it-works) · [🤖 Models & free tier](#-models--free-tier) · [⚙️ Options](#️-cli-options) · [🛰️ Proxies](#️-behind-a-proxy) · [🔌 9Router](#-connect-to-9router) · [🐞 Issues](#-issues)
 
@@ -156,6 +157,15 @@ node src/cli.js --connect-9router --9router-base http://localhost:20128 --9route
 
 Defaults: `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepseek-ai/DeepSeek-V4-Flash-0731`. Models are served as `seekai/<model id>`.
 
+
+## 🔌 Connect to OmniRoute
+
+```bash
+node src/cli.js --connect-omniroute                 # defaults: http://localhost:20128, password 123456
+node src/cli.js --connect-omniroute --omniroute-base http://localhost:20128 --omniroute-password 123456
+```
+
+Defaults: `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepseek-ai/DeepSeek-V4-Flash-0731`. Models are served as `seekai/<model id>`.
 ## 🐞 Issues
 
 If SeekAI changes its sign-up form, its Turnstile site key (`0x4AAAAAAEcpuQE_WXc4ZfG8`), the check-in award or the model catalogue, the tool stops there and says so. **[Open an issue](../../issues)** with the command and the exact output.
