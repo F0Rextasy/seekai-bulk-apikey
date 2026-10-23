@@ -724,9 +724,11 @@ function readKeys(file = KEYS_PATH) {
 function appendKey(key) {
   fs.appendFileSync(KEYS_FILE, (fs.existsSync(KEYS_FILE) && fs.statSync(KEYS_FILE).size ? '\n' : '') + key + '\n');
 }
-/** Dead keys are moved out of keys.txt into keys-dead.txt so they can be retried. */
+/** A key the panel refuses outright (401/403/quota/ban) leaves keys.txt and is
+ *  parked in keys-dead.txt as `key<TAB>sebep<TAB>ISO`. A transport failure or a
+ *  429 is not a key verdict, so it stays in keys.txt for the next run. */
 function saveDeadKeys(dead) {
-  fs.writeFileSync(KEYS_DEAD_FILE, dead.length ? dead.join('\n') + '\n' : '');
+  fs.writeFileSync(KEYS_DEAD_FILE, dead.length ? dead.map((d) => `${d.key}\t${d.why}\t${new Date().toISOString()}`).join('\n') + '\n' : '');
 }
 function loadAccounts() {
   try { return JSON.parse(fs.readFileSync(ACCOUNTS_FILE, 'utf8')); } catch { return []; }
@@ -868,16 +870,15 @@ async function verifyOnly(exits) {
         console.log(`  /v1/models -> ${m.status}, ${modelCount} models`);
       }
       const g = await proveKey(exit, keys[i], { attempts: Math.max(2, Math.min(4, exits.length)), exits });
-      if (g.ok) live++; else dead.push(keys[i]);
+      if (g.ok) live++; else if ([401, 402, 403].includes(Number(g.status))) dead.push({ key: keys[i], why: g.status });
       console.log(`  ${g.ok ? '✔' : '✘'} ${keys[i].slice(0, 12)}… chat=${g.ok ? 200 : g.status || 0} ${g.ok ? `${g.model} "${g.sample}" rl=${JSON.stringify(g.rateLimits)}` : String(g.sample).slice(0, 90)}`);
     } catch (e) {
-      dead.push(keys[i]);
-      console.log(`  ✘ ${keys[i].slice(0, 12)}… ${String(e.message).slice(0, 90)}`);
+      console.log(`  ✘ ${keys[i].slice(0, 12)}… ${String(e.message).slice(0, 90)} (transport — key kept)`);
     }
   }
   if (dead.length) {
     saveDeadKeys(dead);
-    const liveKeys = keys.filter((k) => !dead.includes(k));
+    const liveKeys = keys.filter((k) => !dead.some((d) => d.key === k));
     fs.writeFileSync(KEYS_FILE, liveKeys.length ? liveKeys.join('\n') + '\n' : '');
     console.log(`  dead ${dead.length} → ${KEYS_DEAD_FILE} (moved out of keys.txt)`);
   }
