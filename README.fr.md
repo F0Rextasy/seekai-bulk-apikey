@@ -33,9 +33,9 @@
 
 ---
 
-## ✨ Pourquoi cela existe
+## ✨ Pourquoi cet outil existe
 
-SeekAI exploite un panneau New API (`v1.0.0-rc.25`) sur `seekai.cc` dont **l'offre gratuite est un 签到 (check-in) quotidien : 10 000 000 de quota = 20 $ par compte, réclamé une fois par jour du panneau**. L'inscription est un simple formulaire e-mail + mot de passe (aucun OAuth n'est requis), et le crédit de bienvenue n'est que symbolique (quota 1) — le check-in *est* l'argent. Chaque étape protégée — demande de code + inscription, connexion, et le check-in lui-même — porte un jeton **Cloudflare Turnstile**, et ce widget ne se génère que dans un **Chrome avec interface** sur ce panneau, c'est pourquoi l'outil pilote un vrai navigateur via CDP et filtre la sortie avant d'y dépenser un compte.
+SeekAI fait tourner un panneau New API (`v1.0.0-rc.25`) sur `seekai.cc` dont l'**offre gratuite est un 签到 (check-in) quotidien : 10 000 000 de quota = 20 $ par compte, réclamé une fois par jour du panneau**. L'inscription est un formulaire ordinaire e-mail + mot de passe (aucun OAuth n'est requis), et le crédit de bienvenue n'est que symbolique (quota 1) — le check-in *est* l'argent. Chaque étape protégée — demande de code + inscription, connexion, et le check-in lui-même — porte un jeton **Cloudflare Turnstile**, et ce widget ne se génère que dans un **Chrome avec interface** sur ce panneau, c'est pourquoi l'outil pilote un vrai navigateur via CDP et filtre la sortie avant d'y dépenser un compte.
 
 ## 🎁 Offre gratuite — ce que vous obtenez
 
@@ -43,14 +43,14 @@ SeekAI exploite un panneau New API (`v1.0.0-rc.25`) sur `seekai.cc` dont **l'off
 | --- | --- |
 | Crédit quotidien | **un check-in par compte par jour du panneau = 10 000 000 de quota = 20 $** (`quota_per_unit 500000`) |
 | Crédit de bienvenue | quota `1` (≈ 0,000002 $) — l'offre gratuite est le check-in, pas l'inscription |
-| Exécution mesurée | **12 comptes sur 38 enregistrés le 2026-10-21 → +120 000 000 de quota = 240 $ en une passe** (`providers/seekai.cc/out/checkin-2026-10-21.json`) |
+| Exécution mesurée | **12 comptes sur 38 ont fait leur check-in le 2026-10-21 → +120 000 000 de quota = 240 $ en une passe** (`providers/seekai.cc/out/checkin-2026-10-21.json`) |
 | Deuxième appel, même jour | `今日已签到` (idempotent, considéré comme sain) |
 | Jour du panneau | **UTC+8** — il bascule à 16:00 UTC |
-| Limite de débit | le panneau plafonne l'ensemble de l'IP à ~**5 requêtes/min** (`您已达到总请求数限制`) → espacez les appels de ≥14 s |
+| Limite de débit | le panneau plafonne l'IP entière à ~**5 requêtes/min** (`您已达到总请求数限制`) → espacez les appels de ≥14 s |
 | Carte / téléphone | **aucun** — aucune étape de paiement nulle part, et aucun numéro de téléphone n'est demandé |
 | Clause multi-comptes | non publiée : `/api/user/agreement` est réservé aux admins (403 `AUTH_INSUFFICIENT_PRIVILEGE`) |
 
-> 💡 L'offre gratuite est définie par SeekAI et peut changer. Vérifiez les chiffres en direct sur [seekai.cc](https://seekai.cc) — et laissez le propre filtre de l'outil décider :
+> 💡 L'offre gratuite est définie par SeekAI et peut changer. Consultez les chiffres en direct sur [seekai.cc](https://seekai.cc) — et laissez le propre filtre de l'outil décider :
 
 ```bash
 node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
@@ -58,7 +58,7 @@ node src/cli.js --verify-only     # every key in keys.txt is re-tested with a re
 
 ## 🤖 Modèles — tous les 1
 
-Le panneau annonce un identifiant de chat vérifié sur les comptes que cet outil crée :
+Le panneau annonce un identifiant de chat vérifié sur les comptes que cet outil génère :
 
 | ID du modèle | note |
 | --- | --- |
@@ -66,7 +66,7 @@ Le panneau annonce un identifiant de chat vérifié sur les comptes que cet outi
 
 `GET /v1/models` renvoie les identifiants que ce compte peut appeler ; les identifiants portant un suffixe `:free` sont rejetés avec **401 `API key is disabled`**, donc l'outil filtre sur l'identifiant ci-dessus (et se rabat sur ce que `/v1/models` propose qui n'est pas rejeté).
 
-La forme de la réponse compte : ce relais place le texte dans **`message.reasoning`** et laisse `message.content` **vide** (son `finish_reason` est `length` pour de petits `max_tokens`). Un filtre qui ne regarde que `content` déclare des clés actives inutilisables, donc l'outil accepte `content || reasoning_content || reasoning` et indique lequel a porté la réponse.
+La forme de la réponse compte : ce relais place le texte dans **`message.reasoning`** et laisse `message.content` **vide** (son `finish_reason` est `length` pour des `max_tokens` courts). Un filtre qui ne regarde que `content` déclare des clés actives inutilisables, donc l'outil accepte `content || reasoning_content || reasoning` et indique lequel a porté la réponse.
 
 ## 🧪 Comment utiliser l'API
 
@@ -86,7 +86,7 @@ m = c.chat.completions.create(model="deepseek-ai/DeepSeek-V4-Flash-0731",
 print(m.content or m.reasoning)   # this relay may answer in reasoning
 ```
 
-Un jeton dont le propre `remain_quota` est 0 et qui n'est pas illimité ne s'authentifie pas du tout — créez la clé avec `unlimited_quota: true` (ce que fait l'outil).
+Un jeton dont le propre `remain_quota` est 0 et qui n'est pas illimité ne s'authentifie pas du tout — créez la clé avec `unlimited_quota: true` (c'est ce que fait l'outil).
 
 ## 🛠 Démarrage rapide
 
@@ -105,28 +105,40 @@ L'inscription (et le check-in) nécessite un vrai Chrome **avec interface** : me
 
 ### 🖱️ Le lanceur
 
-`node src/launcher.js` est un menu au-dessus des modules de tâches : **mint** (un nouveau compte, son e-mail vérifié, la clé et le check-in quotidien de 20 $), **verify** (relancer le filtre de chat sur `keys.txt`) et **screen** (passe HTTP sur la liste des sorties). Les réglages — liste de proxys, nombre de comptes, modèle — persistent dans `launcher.config.json`. Chaque option ci-dessous est accessible directement depuis la CLI.
+`node src/launcher.js` est un menu au-dessus des modules de tâches : **mint** (un nouveau compte, son e-mail vérifié, la clé et le check-in quotidien de 20 $), **verify** (relancer le filtre de chat sur `keys.txt`) et **screen** (passe HTTP sur la liste de sorties). Les réglages — liste de proxys, nombre de comptes, modèle — persistent dans `launcher.config.json`. Chaque option ci-dessous est accessible directement depuis la CLI.
+
+## 🚀 Une seule commande
+
+Le captcha est résolu pour vous — une seule commande génère N comptes (avec le crédit de check-in quotidien de 20 $) et ne conserve que les clés qu'un appel de chat en direct a vérifiées :
+
+```bash
+node src/cli.js --count N        # N accounts, serial — the Turnstile widget is answered in a real Chrome
+```
+
+`--auto` est la valeur par défaut et rien ne doit être passé : le `src/solver.js` intégré ouvre un Chrome avec interface, monte le widget Turnstile du panneau et renvoie le jeton automatiquement. `--dry` affiche le plan résolu (nombre, pool de sorties, solveur, modèle) et se termine **sans écrire de fichier ni appel réseau**. `node src/launcher.js` (ou `npm start`) est le même chemin sous forme de menu.
+
+> ⚠️ **Conditions et risque lié au compte.** C'est un outil d'automatisation, pas un vendeur de comptes. Les inscriptions en masse et la génération de clés relèvent entièrement de votre responsabilité : elles peuvent enfreindre les Conditions d'utilisation du fournisseur et entraîner le blocage d'adresses, de sorties ou de comptes. Utilisez-le uniquement sur une infrastructure que vous êtes autorisé à automatiser, et gardez un débit de requêtes faible.
 
 ## ✅ Vérifié fonctionnel — chaque clé est testée
 
-Toutes les vérifications ci-dessous ont été relancées le **2026-10-21** depuis la CLI fournie (pool de sorties, sans WARP).
+Toutes les vérifications ci-dessous ont été relancées le **2026-10-21** depuis la CLI livrée (pool de sorties, sans WARP).
 
 | Vérification | Résultat |
 | --- | --- |
-| `--screen` (vérification HTTP des sorties) | la page de connexion doit s'afficher + `challenges.cloudflare.com/turnstile/v0/api.js` doit répondre 200 + l'hôte de l'API doit répondre |
-| filtrage des sorties dans Chrome (en flux) | une ligne dont le widget ne se génère jamais est refusée **avant** qu'une boîte mail ne soit dépensée (c'était le blocage du 2026-10-14, désormais un filtre strict) |
+| `--screen` (contrôle HTTP des sorties) | la page de connexion doit s'afficher + `challenges.cloudflare.com/turnstile/v0/api.js` doit répondre 200 + l'hôte de l'API doit répondre |
+| contrôle des sorties dans Chrome (en flux) | une ligne dont le widget ne se génère jamais est refusée **avant** qu'une boîte mail ne soit dépensée (c'était le blocage du 2026-10-14, désormais un filtre strict) |
 | inscription | `POST /api/user/register?turnstile=` → **200** (`success: true`) après le code par e-mail |
-| création de clé | `POST /api/token/` → liste → `POST /api/token/<id>/key` → **200**, clé de 48 caractères |
+| génération de clé | `POST /api/token/` → liste → `POST /api/token/<id>/key` → **200**, clé de 48 caractères |
 | check-in quotidien | `POST /api/user/checkin?turnstile=` → **`quota_awarded: 10000000`** (20 $) ; 12 comptes en une exécution = **240 $** |
 | chat par clé | **chaque clé 200** sur `deepseek-ai/DeepSeek-V4-Flash-0731` (réponse portée dans `reasoning`) — relancé depuis cette CLI, avec rotation des sorties |
-| `401 API key is disabled` | **dépend de la sortie, pas un verdict sur la clé** : trois clés ont répondu cela depuis une sortie et 200 depuis une autre dans la même minute, donc le filtre réessaie cette réponse sur la sortie suivante |
-| une clé qui échoue à sa vérification | jamais écrite dans `keys.txt` (le filtre réessaie une fois les échecs de classe sortie) |
+| `401 API key is disabled` | **dépend de la sortie, pas un verdict sur la clé** : trois clés ont reçu cette réponse depuis une sortie et 200 depuis une autre dans la même minute, donc le filtre réessaie cette réponse sur la sortie suivante |
+| une clé qui échoue à sa vérification | jamais écrite dans `keys.txt` (le filtre réessaie une fois les échecs liés à la sortie) |
 
 > **Filtres de qualité.** Chaque clé ici a passé un `chat-200` en direct avant d'être écrite dans `keys.txt`
-> (les clés mortes ne sont jamais livrées). Les combos de routeur suivent la même règle au niveau du modèle : une entrée n'est
-> ajoutée **que si le modèle répond `chat-200` et peut appeler des outils** — un modèle sans support des outils,
+> (les clés mortes ne sont jamais livrées). Les combos de routeur suivent la même règle au niveau du modèle : une entrée est
+> ajoutée **uniquement si le modèle répond `chat-200` et peut appeler des outils** — un modèle sans prise en charge des outils,
 > une clé morte ou un fournisseur mort est écarté au lieu d'être ajouté. Relancez l'étape de vérification à tout moment ;
-> les échecs sont signalés, jamais cachés.
+> les échecs sont signalés, jamais masqués.
 
 ## 🧭 Comment ça marche
 
@@ -141,18 +153,18 @@ inbox (one address per account)                                  a fresh address
 
 | Étape | Appel | Notes |
 | --- | --- | --- |
-| filtrage | `/sign-in` dans Chrome | le widget du panneau doit se monter **et se générer** ; une ligne qui charge la page mais ne répond jamais ne peut pas s'inscrire |
+| contrôle | `/sign-in` dans Chrome | le widget du panneau lui-même doit se monter **et se générer** ; une ligne qui charge la page mais ne répond jamais ne peut pas s'inscrire |
 | boîte mail | boîte gmail Emailnator | le rail recycle les adresses, donc seul le courrier de `seekai` est accepté |
-| inscription | `/sign-up` → `GET /api/verification?email=&turnstile=` | un jeton couvre la demande de code **et** l'appel d'inscription |
+| inscription | `/sign-up` → `GET /api/verification?email=&turnstile=` | un seul jeton couvre la demande de code **et** l'appel d'inscription |
 | enregistrement | `POST /api/user/register?turnstile=` | corps : nom d'utilisateur, mot de passe, e-mail, verification_code |
 | connexion | `POST /api/user/login?turnstile=` | son propre jeton → `data.access_token` |
-| clé | `POST /api/token/` → liste → `/api/token/<id>/key` | pas de captcha sur ces routes ; la liste n'affiche qu'un masque |
+| clé | `POST /api/token/` → liste → `/api/token/<id>/key` | aucun captcha sur ces routes ; la liste n'affiche qu'un masque |
 | check-in | `POST /api/user/checkin?turnstile=` | son propre jeton → `quota_awarded: 10000000` |
 | filtre | `GET /v1/models` + une complétion | 200 avec `content` **ou** `reasoning` → la clé est écrite |
 
-Le panneau répond aussi **`401 API key is disabled`** pour des raisons sans aucun rapport avec la clé (mesuré le 2026-10-21 : même clé, une sortie 401, une autre 200 en moins d'une minute) — une exécution de vérification devrait faire tourner les sorties avant de le croire.
+Le panneau répond aussi **`401 API key is disabled`** pour des raisons qui n'ont rien à voir avec la clé (mesuré le 2026-10-21 : même clé, une sortie 401, une autre 200 en moins d'une minute) — une exécution de vérification devrait faire tourner les sorties avant de le croire.
 
-Les jetons Turnstile ici sont **à usage unique et liés au document** : un jeton produit dans un autre contexte répond `Turnstile 校验失败`. L'automatisation de style Playwright n'est pas nécessaire — un simple `Runtime.evaluate` CDP + un clic `Input.dispatchMouseEvent` suffit, ce que fait ce client sans dépendances.
+Les jetons Turnstile ici sont **à usage unique et liés au document** : un jeton produit dans un autre contexte répond `Turnstile 校验失败`. L'automatisation de style Playwright n'est pas nécessaire — un simple `Runtime.evaluate` CDP + un clic `Input.dispatchMouseEvent` suffit, ce que fait ce client sans dépendance.
 
 ## ⚙️ Options de la CLI
 
@@ -167,7 +179,7 @@ node src/cli.js --help
 
 | Option | Défaut | Signification |
 | --- | --- | --- |
-| `--count N` | `1` | comptes à créer, en série |
+| `--count N` | `1` | comptes à générer, en série |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | modèle utilisé pour le filtre en direct |
 | `--pool <file>` | `proxies.txt` | liste de sorties, une ligne par proxy — facultatif |
 | `--tries N` | `3` | candidats de sortie filtrés par compte |
@@ -176,15 +188,15 @@ node src/cli.js --help
 | `--panel-gap MS` | `14000` | pause entre les appels API de ce panneau (5 req/min) |
 | `--code-timeout S` | `240` | secondes d'attente du code par e-mail |
 | `--keys <file>` | `keys.txt` | fichier de clés pour `--verify-only` / `--connect-9router` |
-| `--headless` | désactivé | **diagnostic uniquement** — Turnstile ne se générera pas, chaque création échoue |
+| `--headless` | désactivé | **diagnostic uniquement** — Turnstile ne se générera pas, chaque génération échoue |
 
 ## 🛰️ Derrière un proxy
 
 **Facultatif — recommandé à grande échelle (limites par IP, bannissements).** L'outil fonctionne aussi sans proxy.
 
-- **Avec un pool :** passez `--pool <file>` (ou définissez `SEEKAI_PROXIES`) et chaque requête — le navigateur Chrome inclus — passe par une sortie de cette liste, en mode fail-closed : chaque candidat est d'abord vérifié (la page de connexion s'affiche + le script Turnstile répond 200) et l'exécution reste ensuite épinglée à cette sortie pour tout le compte.
-- **Sans pool :** la CLI affiche `running WITHOUT a proxy (direct)` et se connecte directement. Rien ne change pour l'inscription, la création de clé ou le check-in — seul le point de sortie des paquets change.
-- **La qualité des sorties décide du succès ici.** Le 2026-10-21, un pool brut a donné surtout `no login form` / `no turnstile token` ; sur 26 candidats, seuls **8** pouvaient réellement exécuter le rail. Filtrez d'abord, puis créez.
+- **Avec un pool :** passez `--pool <file>` (ou définissez `SEEKAI_PROXIES`) et chaque requête — le navigateur Chrome inclus — passe par une sortie de cette liste, en échec fermé : chaque candidat est d'abord contrôlé (la page de connexion s'affiche + le script Turnstile répond 200) et l'exécution reste ensuite épinglée à cette sortie pour tout le compte.
+- **Sans pool :** la CLI affiche `running WITHOUT a proxy (direct)` et se connecte directement. Rien ne change pour l'inscription, la génération de clés ou le check-in — seul le point de départ des paquets change.
+- **La qualité des sorties décide du succès ici.** Le 2026-10-21, un pool brut a donné surtout `no login form` / `no turnstile token` ; sur 26 candidats, seuls **8** pouvaient réellement exécuter le rail. Filtrez d'abord, puis générez.
 - Les lignes SOCKS5 avec un nom d'utilisateur/mot de passe sont ignorées : Chrome ne peut pas s'y authentifier (les proxys HTTP avec identifiants sont gérés via le domaine Fetch).
 
 ## 📄 Fichiers
@@ -198,7 +210,7 @@ node src/cli.js --help
 
 ## 🔌 Connexion à 9Router
 
-[9Router](https://9router.com) est un routeur auto-hébergé, compatible OpenAI :
+[9Router](https://9router.com) est un routeur auto-hébergé compatible OpenAI :
 
 ```bash
 node src/connect-9router.js --base http://localhost:20128 --password 123456
@@ -208,7 +220,7 @@ Défauts : `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepse
 
 ## 🔌 Connexion à OmniRoute
 
-[OmniRoute](https://omniroute.online) est un routeur auto-hébergé, compatible OpenAI :
+[OmniRoute](https://omniroute.online) est un routeur auto-hébergé compatible OpenAI :
 
 ```bash
 node src/connect-omniroute.js --base http://localhost:20128 --password 123456
@@ -221,7 +233,7 @@ Défauts : `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepse
 | | |
 | --- | --- |
 | 🏢 Fournisseur | **SeekAI** — [seekai.cc](https://seekai.cc) |
-| 🎁 Ce que le fournisseur donne | **20 $ par compte par jour**, réclamés avec un seul check-in (`quota_awarded: 10000000`) |
+| 🎁 Ce que le fournisseur donne | **20 $ par compte et par jour**, réclamés avec un seul check-in (`quota_awarded: 10000000`) |
 | 🔑 Ce qu'une clé vous apporte | la liste de modèles du compte sur `https://seekai.cc/v1`, facturée sur le crédit de check-in |
 | 🌐 Forme de l'API | compatible OpenAI : `POST https://seekai.cc/v1/chat/completions` (les réponses peuvent arriver dans `reasoning`) |
 | 🔒 Vos données | seuls `seekai.cc` et votre backend de boîte mail sont contactés |

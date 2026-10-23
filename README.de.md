@@ -21,7 +21,7 @@
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
 [![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 Schnellstart](#-quick-start) · [🎁 Kostenlose Stufe](#-free-tier--how-much-you-get) · [🤖 Modelle](#-models--all-1-of-them) · [🧪 API verwenden](#-how-to-use-the-api) · [✅ Verifiziert](#-verified-working--every-key-is-tested) · [🧭 Funktionsweise](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ Optionen](#️-cli-options) · [🛰️ Proxys](#️-behind-a-proxy) · [🐞 Probleme](#-issues)
+[🛠 Schnellstart](#-quick-start) · [🎁 Kostenlose Stufe](#-free-tier--how-much-you-get) · [🤖 Modelle](#-models--all-1-of-them) · [🧪 Die API verwenden](#-how-to-use-the-api) · [✅ Verifiziert](#-verified-working--every-key-is-tested) · [🧭 So funktioniert es](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ Optionen](#️-cli-options) · [🛰️ Proxys](#️-behind-a-proxy) · [🐞 Probleme](#-issues)
 
 </div>
 
@@ -43,11 +43,11 @@ SeekAI betreibt ein New-API-Panel (`v1.0.0-rc.25`) auf `seekai.cc`, dessen **kos
 | --- | --- |
 | Tägliches Guthaben | **ein Check-in pro Konto pro Panel-Tag = 10.000.000 Quota = $20** (`quota_per_unit 500000`) |
 | Willkommensguthaben | Quota `1` (≈ $0,000002) — die kostenlose Stufe ist der Check-in, nicht die Anmeldung |
-| Gemessener Durchlauf | **12 von 38 Konten am 2026-10-21 eingecheckt → +120.000.000 Quota = $240 in einem Durchgang** (`providers/seekai.cc/out/checkin-2026-10-21.json`) |
+| Gemessener Lauf | **12 von 38 Konten am 2026-10-21 eingecheckt → +120.000.000 Quota = $240 in einem Durchlauf** (`providers/seekai.cc/out/checkin-2026-10-21.json`) |
 | Zweiter Aufruf, gleicher Tag | `今日已签到` (idempotent, gilt als gesund) |
-| Panel-Tag | **UTC+8** — er rollt um 16:00 UTC um |
+| Panel-Tag | **UTC+8** — er wechselt um 16:00 UTC |
 | Ratenlimit | das Panel begrenzt die gesamte IP auf ~**5 Anfragen/Min** (`您已达到总请求数限制`) → Aufrufe ≥14 s auseinanderziehen |
-| Karte / Telefon | **keine** — kein Zahlungsschritt irgendwo, und keine Telefonnummer wird verlangt |
+| Karte / Telefon | **keine** — kein Zahlungsschritt irgendwo, und es wird keine Telefonnummer verlangt |
 | Multi-Konto-Klausel | nicht veröffentlicht: `/api/user/agreement` ist nur für Admins (403 `AUTH_INSUFFICIENT_PRIVILEGE`) |
 
 > 💡 Die kostenlose Stufe wird von SeekAI festgelegt und kann sich ändern. Prüfe die aktuellen Zahlen auf [seekai.cc](https://seekai.cc) — und lass das Gate des Tools selbst entscheiden:
@@ -64,13 +64,13 @@ Das Panel bewirbt eine verifizierte Chat-ID für die Konten, die dieses Tool ers
 | --- | --- |
 | `deepseek-ai/DeepSeek-V4-Flash-0731` | Chat-verifiziert für jeden Schlüssel am 2026-10-21; antwortet als Reasoning-Route |
 
-`GET /v1/models` gibt die IDs zurück, die dieses Konto aufrufen darf; IDs mit einem `:free`-Suffix werden mit **401 `API key is disabled`** abgelehnt, daher prüft das Tool auf die obige ID (und weicht auf das aus, was `/v1/models` anbietet und nicht abgelehnt wird).
+`GET /v1/models` gibt die IDs zurück, die dieses Konto aufrufen darf; IDs mit dem Suffix `:free` werden mit **401 `API key is disabled`** abgelehnt, daher prüft das Tool auf die obige ID (und weicht auf das aus, was `/v1/models` anbietet und nicht abgelehnt wird).
 
-Die Antwortform ist wichtig: Dieser Relay legt den Text in **`message.reasoning`** und lässt `message.content` **leer** (sein `finish_reason` ist `length` bei kurzen `max_tokens`). Ein Gate, das nur auf `content` schaut, hält funktionierende Schlüssel für unbrauchbar, daher akzeptiert das Tool `content || reasoning_content || reasoning` und meldet, welches Feld die Antwort getragen hat.
+Die Antwortform ist wichtig: Dieser Relay legt den Text in **`message.reasoning`** und lässt `message.content` **leer** (sein `finish_reason` ist `length` bei kurzen `max_tokens`). Ein Gate, das nur auf `content` schaut, hält aktive Schlüssel für unbrauchbar, daher akzeptiert das Tool `content || reasoning_content || reasoning` und meldet, welches Feld die Antwort enthielt.
 
-## 🧪 So verwendest du die API
+## 🧪 Die API verwenden
 
-Basis-URL **`https://seekai.cc/v1`** — OpenAI-kompatible Chat-Completions. Schlüssel sind **48 Zeichen ohne `sk-`-Präfix** (die Liste des Panels maskiert sie; das Tool enthüllt den Wert mit `POST /api/token/<id>/key`).
+Basis-URL **`https://seekai.cc/v1`** — OpenAI-kompatible Chat-Completions. Schlüssel sind **48 Zeichen ohne `sk-`-Präfix** (die Liste des Panels maskiert sie; das Tool gibt den Wert mit `POST /api/token/<id>/key` preis).
 
 ```bash
 curl https://seekai.cc/v1/chat/completions \
@@ -101,15 +101,27 @@ node src/cli.js --verify-only    # re-test every key already in keys.txt
 node src/cli.js --screen         # HTTP screen of the exit list
 ```
 
-Die Registrierung (und der Check-in) benötigt ein echtes, **headed** Chrome: auf diesem Panel gemessen, lassen `--headless=new` und `--headless=old` das Turnstile-Widget 60 s lang leer, während ein headed Fenster — sichtbar oder außerhalb des Bildschirms — in 2-4 s antwortet. `keys.txt` wird erst geschrieben, nachdem `GET /v1/models` **und** eine echte Completion erfolgreich waren; `accounts.json` speichert den Kontozustand (Benutzername, Passwort, E-Mail, Schlüssel, Check-in-Guthaben).
+Die Registrierung (und der Check-in) benötigt ein echtes, **headed** Chrome: Auf diesem Panel gemessen, lassen `--headless=new` und `--headless=old` das Turnstile-Widget 60 s lang leer, während ein headed Fenster — sichtbar oder außerhalb des Bildschirms — in 2-4 s antwortet. `keys.txt` wird erst geschrieben, nachdem `GET /v1/models` **und** eine echte Completion erfolgreich waren; `accounts.json` speichert den Kontozustand (Benutzername, Passwort, E-Mail, Schlüssel, Check-in-Guthaben).
 
 ### 🖱️ Der Launcher
 
-`node src/launcher.js` ist ein Menü über die Aufgabenmodule: **mint** (ein frisches Konto, seine verifizierte E-Mail, der Schlüssel und der tägliche $20-Check-in), **verify** (das Chat-Gate erneut über `keys.txt` laufen lassen) und **screen** (HTTP-Durchlauf über die Exit-Liste). Einstellungen — Proxy-Liste, Kontenanzahl, Modell — werden in `launcher.config.json` gespeichert. Jedes der folgenden Flags ist direkt über die CLI erreichbar.
+`node src/launcher.js` ist ein Menü über die Aufgabenmodule: **mint** (ein frisches Konto, seine verifizierte E-Mail, der Schlüssel und der tägliche $20-Check-in), **verify** (das Chat-Gate erneut über `keys.txt` laufen lassen) und **screen** (HTTP-Prüfung der Exit-Liste). Einstellungen — Proxy-Liste, Kontenanzahl, Modell — bleiben in `launcher.config.json` erhalten. Jedes unten aufgeführte Flag ist direkt über die CLI erreichbar.
+
+## 🚀 Ein Befehl
+
+Das Captcha wird für dich gelöst — ein Befehl erstellt N Konten (mit dem täglichen $20-Check-in-Guthaben) und behält nur die Schlüssel, die ein echter Chat-Aufruf verifiziert hat:
+
+```bash
+node src/cli.js --count N        # N accounts, serial — the Turnstile widget is answered in a real Chrome
+```
+
+`--auto` ist die Standardeinstellung und es muss nichts übergeben werden: Das eingebettete `src/solver.js` öffnet ein headed Chrome, bindet das Turnstile-Widget des Panels ein und gibt das Token automatisch zurück. `--dry` gibt den aufgelösten Plan aus (Anzahl, Exit-Pool, Solver, Modell) und beendet sich mit **keiner geschriebenen Datei und keinem Netzwerkaufruf**. `node src/launcher.js` (oder `npm start`) ist derselbe Pfad als Menü.
+
+> ⚠️ **Nutzungsbedingungen & Kontorisiko.** Dies ist ein Automatisierungstool, kein Konto-Verkäufer. Massenregistrierungen und Schlüsselerstellung liegen vollständig in deiner Verantwortung: Sie können gegen die Nutzungsbedingungen des Anbieters verstoßen und dazu führen, dass Adressen, Exits oder Konten blockiert werden. Verwende es nur auf Infrastruktur, die du automatisieren darfst, und halte die Anfragrate niedrig.
 
 ## ✅ Verifiziert funktionierend — jeder Schlüssel wird getestet
 
-Alle untenstehenden Prüfungen wurden am **2026-10-21** mit der ausgelieferten CLI erneut ausgeführt (Exit-Pool, kein WARP).
+Alle unten aufgeführten Prüfungen wurden am **2026-10-21** mit der ausgelieferten CLI erneut ausgeführt (Exit-Pool, kein WARP).
 
 | Prüfung | Ergebnis |
 | --- | --- |
@@ -117,19 +129,18 @@ Alle untenstehenden Prüfungen wurden am **2026-10-21** mit der ausgelieferten C
 | Exit-Prüfung in Chrome (im Ablauf) | eine Zeile, deren Widget nie erzeugt wird, wird abgelehnt, **bevor** ein Postfach verbraucht wird (das war der Blocker vom 2026-10-14, jetzt ein hartes Gate) |
 | Registrierung | `POST /api/user/register?turnstile=` → **200** (`success: true`) nach dem Mail-Code |
 | Schlüsselerstellung | `POST /api/token/` → Liste → `POST /api/token/<id>/key` → **200**, 48-Zeichen-Schlüssel |
-| Täglicher Check-in | `POST /api/user/checkin?turnstile=` → **`quota_awarded: 10000000`** ($20); 12 Konten in einem Durchlauf = **$240** |
-| Chat pro Schlüssel | **jeder Schlüssel 200** auf `deepseek-ai/DeepSeek-V4-Flash-0731` (Antwort im `reasoning`-Feld) — erneut ausgeführt mit dieser CLI, mit Exit-Rotation |
-| `401 API key is disabled` | **exit-abhängig, kein Schlüssel-Urteil**: drei Schlüssel antworteten damit von einem Exit und mit 200 von einem anderen in derselben Minute, daher wiederholt das Gate diese Antwort beim nächsten Exit |
-| ein Schlüssel, der seine Prüfung nicht besteht | wird nie in `keys.txt` geschrieben (das Gate wiederholt Exit-Klassen-Fehler einmal) |
+| Täglicher Check-in | `POST /api/user/checkin?turnstile=` → **`quota_awarded: 10000000`** ($20); 12 Konten in einem Lauf = **$240** |
+| Chat pro Schlüssel | **jeder Schlüssel 200** auf `deepseek-ai/DeepSeek-V4-Flash-0731` (Antwort im `reasoning`-Feld) — erneut ausgeführt von dieser CLI, mit Exit-Rotation |
+| `401 API key is disabled` | **exit-abhängig, kein Schlüssel-Urteil**: drei Schlüssel antworteten damit von einem Exit und 200 von einem anderen in derselben Minute, daher wiederholt das Gate diese Antwort beim nächsten Exit |
+| Ein Schlüssel, der seine Prüfung nicht besteht | wird nie in `keys.txt` geschrieben (das Gate wiederholt Exit-Klassen-Fehler einmal) |
 
-> **Qualitätsgates.** Jeder Schlüssel hier hat ein Live-`chat-200` bestanden, bevor er in `keys.txt`
-> geschrieben wurde (tote Schlüssel werden nie ausgeliefert). Router-Kombinationen folgen derselben Regel
-> auf Modellebene: ein Eintrag wird **nur hinzugefügt, wenn das Modell `chat-200` antwortet und Tools
-> aufrufen kann** — ein Modell ohne Tool-Unterstützung, ein toter Schlüssel oder ein toter Anbieter wird
-> verworfen statt hinzugefügt. Führe den Verifizierungsschritt jederzeit erneut aus;
+> **Qualitätsgates.** Jeder Schlüssel hier hat einen echten `chat-200` bestanden, bevor er in `keys.txt` geschrieben wurde
+> (tote Schlüssel werden nie ausgeliefert). Router-Kombinationen folgen derselben Regel auf Modellebene: Ein Eintrag wird
+> **nur hinzugefügt, wenn das Modell `chat-200` antwortet und Tools aufrufen kann** — ein Modell ohne Tool-Unterstützung,
+> ein toter Schlüssel oder ein toter Anbieter wird verworfen statt hinzugefügt. Führe den Verifizierungsschritt jederzeit erneut aus;
 > Fehler werden gemeldet, nie versteckt.
 
-## 🧭 Funktionsweise
+## 🧭 So funktioniert es
 
 ```
 inbox (one address per account)                                  a fresh address per account
@@ -142,18 +153,18 @@ inbox (one address per account)                                  a fresh address
 
 | Schritt | Aufruf | Hinweise |
 | --- | --- | --- |
-| Prüfung | `/sign-in` in Chrome | das eigene Widget des Panels muss sich einbinden **und erzeugen**; eine Zeile, die die Seite lädt, aber nie antwortet, kann sich nicht registrieren |
-| Postfach | Emailnator-Gmail-Box | die Rail recycelt Adressen, daher wird nur Mail von `seekai` akzeptiert |
+| screen | `/sign-in` in Chrome | das eigene Widget des Panels muss sich einbinden **und erzeugen**; eine Zeile, die die Seite lädt, aber nie antwortet, kann sich nicht registrieren |
+| Mailbox | Emailnator-Gmail-Box | die Rail recycelt Adressen, daher wird nur Mail von `seekai` akzeptiert |
 | Registrierung | `/sign-up` → `GET /api/verification?email=&turnstile=` | ein Token deckt die Code-Anforderung **und** den Register-Aufruf ab |
-| Registrieren | `POST /api/user/register?turnstile=` | Body: Benutzername, Passwort, E-Mail, verification_code |
-| Anmelden | `POST /api/user/login?turnstile=` | eigenes Token → `data.access_token` |
-| Schlüssel | `POST /api/token/` → Liste → `/api/token/<id>/key` | kein Captcha auf diesen Routen; die Liste zeigt nur eine Maske |
-| Check-in | `POST /api/user/checkin?turnstile=` | eigenes Token → `quota_awarded: 10000000` |
-| Gate | `GET /v1/models` + eine Completion | 200 mit `content` **oder** `reasoning` → der Schlüssel wird geschrieben |
+| register | `POST /api/user/register?turnstile=` | Body: Benutzername, Passwort, E-Mail, verification_code |
+| login | `POST /api/user/login?turnstile=` | eigenes Token → `data.access_token` |
+| key | `POST /api/token/` → Liste → `/api/token/<id>/key` | kein Captcha auf diesen Routen; die Liste zeigt nur eine Maske |
+| check-in | `POST /api/user/checkin?turnstile=` | eigenes Token → `quota_awarded: 10000000` |
+| gate | `GET /v1/models` + eine Completion | 200 mit `content` **oder** `reasoning` → der Schlüssel wird geschrieben |
 
-Das Panel antwortet außerdem mit **`401 API key is disabled`** aus Gründen, die nichts mit dem Schlüssel zu tun haben (gemessen am 2026-10-21: derselbe Schlüssel, ein Exit 401, ein anderer 200 innerhalb einer Minute) — ein Verify-Durchlauf sollte Exits rotieren, bevor er das glaubt.
+Das Panel antwortet außerdem mit **`401 API key is disabled`** aus Gründen, die nichts mit dem Schlüssel zu tun haben (gemessen am 2026-10-21: derselbe Schlüssel, ein Exit 401, ein anderer 200 innerhalb einer Minute) — ein Verify-Lauf sollte die Exits rotieren, bevor er das glaubt.
 
-Turnstile-Token sind hier **einmalig verwendbar und dokumentgebunden**: ein in einem anderen Kontext erzeugtes Token antwortet mit `Turnstile 校验失败`. Playwright-artige Automatisierung ist nicht erforderlich — ein einfacher CDP `Runtime.evaluate` + `Input.dispatchMouseEvent`-Klick genügt, was dieser Client ohne Abhängigkeiten tut.
+Turnstile-Token sind hier **einmalig verwendbar und dokumentgebunden**: Ein Token, das in einem anderen Kontext erzeugt wurde, antwortet mit `Turnstile 校验失败`. Playwright-artige Automatisierung ist nicht erforderlich — ein einfacher CDP-`Runtime.evaluate` + `Input.dispatchMouseEvent`-Klick genügt, und genau das macht dieser Client ohne Abhängigkeiten.
 
 ## ⚙️ CLI-Optionen
 
@@ -173,7 +184,7 @@ node src/cli.js --help
 | `--pool <file>` | `proxies.txt` | Exit-Liste, eine Zeile pro Proxy — optional |
 | `--tries N` | `3` | Exit-Kandidaten, die pro Konto geprüft werden |
 | `--mint-tries N` | `2` | vollständige Registrierungsversuche (frisches Postfach + Chrome) pro Exit |
-| `--gap MS` | `20000` | Pause zwischen Konten |
+| `--gap MS` | `20000` | Pause zwischen den Konten |
 | `--panel-gap MS` | `14000` | Pause zwischen den API-Aufrufen dieses Panels (5 Anfragen/Min) |
 | `--code-timeout S` | `240` | Sekunden, die auf den E-Mail-Code gewartet wird |
 | `--keys <file>` | `keys.txt` | Schlüsseldatei für `--verify-only` / `--connect-9router` |
@@ -183,10 +194,10 @@ node src/cli.js --help
 
 **Optional — bei Skalierung empfohlen (Limits pro IP, Sperren).** Das Tool funktioniert auch ohne Proxy.
 
-- **Mit einem Pool:** übergib `--pool <file>` (oder setze `SEEKAI_PROXIES`), und jede Anfrage — einschließlich des Chrome-Browsers — läuft über einen Exit aus dieser Liste, fail-closed: jeder Kandidat wird zuerst geprüft (Anmeldeseite rendert + Turnstile-Skript 200), und der Durchlauf bleibt dann für das gesamte Konto an diesen Exit gebunden.
-- **Ohne einen Pool:** die CLI gibt `running WITHOUT a proxy (direct)` aus und verbindet direkt. An Registrierung, Schlüsselerstellung oder Check-in ändert sich nichts — nur daran, wo die Pakete das Gerät verlassen.
+- **Mit einem Pool:** Übergib `--pool <file>` (oder setze `SEEKAI_PROXIES`), und jede Anfrage — einschließlich des Chrome-Browsers — geht durch einen Exit aus dieser Liste, fail-closed: Jeder Kandidat wird zuerst geprüft (Anmeldeseite rendert + Turnstile-Skript 200), und der Lauf bleibt dann für das gesamte Konto an diesen Exit gebunden.
+- **Ohne einen Pool:** Die CLI gibt `running WITHOUT a proxy (direct)` aus und verbindet direkt. An Registrierung, Schlüsselerstellung oder Check-in ändert sich nichts — nur daran, wo die Pakete das Netz verlassen.
 - **Die Exit-Qualität entscheidet hier über den Erfolg.** Am 2026-10-21 lieferte ein roher Pool überwiegend `no login form` / `no turnstile token`; von 26 Kandidaten konnten nur **8** die Rail tatsächlich ausführen. Erst prüfen, dann erstellen.
-- SOCKS5-Zeilen mit Benutzername/Passwort werden übersprungen: Chrome kann sich bei ihnen nicht authentifizieren (HTTP-Proxys mit Anmeldedaten werden über die Fetch-Domain behandelt).
+- SOCKS5-Zeilen mit Benutzername/Passwort werden übersprungen: Chrome kann sich bei ihnen nicht authentifizieren (HTTP-Proxys mit Zugangsdaten werden über die Fetch-Domain behandelt).
 
 ## 📄 Dateien
 
@@ -195,7 +206,7 @@ node src/cli.js --help
 | `keys.txt` | ein live-verifizierter Schlüssel pro Zeile — von Git ignoriert |
 | `accounts.json` | Benutzername / Passwort / E-Mail / Schlüssel / Check-in-Status, inkl. fehlgeschlagener Versuche |
 | `proxies.txt` | deine Exits — von Git ignoriert |
-| `out/` | Ausführungsprotokoll, Fehler-Screenshots, `attempts.jsonl`-Ledger — von Git ignoriert |
+| `out/` | Lauf-Log, Fehler-Screenshots, `attempts.jsonl`-Ledger — von Git ignoriert |
 
 ## 🔌 Mit 9Router verbinden
 
@@ -217,19 +228,19 @@ node src/connect-omniroute.js --base http://localhost:20128 --password 123456
 
 Standardwerte: `--prefix seekai`, `--base-url https://seekai.cc/v1`, `--model deepseek-ai/DeepSeek-V4-Flash-0731`. Modelle werden als `seekai/<model id>` bereitgestellt. Die CLI kann dasselbe in einem Durchgang erledigen: `node src/cli.js --connect-omniroute`.
 
-## 🔑 Was dir ein Schlüssel bringt
+## 🔑 Was ein Schlüssel dir bringt
 
 | | |
 | --- | --- |
 | 🏢 Anbieter | **SeekAI** — [seekai.cc](https://seekai.cc) |
 | 🎁 Was der Anbieter gibt | **$20 pro Konto pro Tag**, abgerufen mit einem Check-in (`quota_awarded: 10000000`) |
-| 🔑 Was dir ein Schlüssel bringt | die Modellliste des Kontos auf `https://seekai.cc/v1`, abgerechnet gegen das Check-in-Guthaben |
+| 🔑 Was ein Schlüssel dir bringt | die Modellliste des Kontos auf `https://seekai.cc/v1`, abgerechnet gegen das Check-in-Guthaben |
 | 🌐 API-Form | OpenAI-kompatibel: `POST https://seekai.cc/v1/chat/completions` (Antworten können im `reasoning`-Feld eintreffen) |
-| 🔒 Deine Daten | nur `seekai.cc` und dein Postfach-Backend werden kontaktiert |
+| 🔒 Deine Daten | nur `seekai.cc` und dein Mailbox-Backend werden kontaktiert |
 
 ## 🐞 Probleme
 
-Wenn SeekAI sein Registrierungsformular, seinen Turnstile-Site-Key (`0x4AAAAAAEcpuQE_WXc4ZfG8`), die Check-in-Prämie oder den Modellkatalog ändert, hält das Tool dort an und sagt es. **[Öffne ein Issue](../../issues)** mit dem Befehl und der genauen Ausgabe.
+Wenn SeekAI sein Registrierungsformular, seinen Turnstile-Site-Key (`0x4AAAAAAEcpuQE_WXc4ZfG8`), die Check-in-Prämie oder den Modellkatalog ändert, stoppt das Tool dort und sagt es dir. **[Öffne ein Issue](../../issues)** mit dem Befehl und der genauen Ausgabe.
 
 ## 📄 Lizenz
 

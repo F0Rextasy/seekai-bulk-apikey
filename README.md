@@ -106,6 +106,18 @@ The sign-up (and the check-in) needs a real, **headed** Chrome: measured on this
 
 `node src/launcher.js` is a menu over the task modules: **mint** (a fresh account, its verified e-mail, the key and the daily $20 check-in), **verify** (re-run the chat gate over `keys.txt`) and **screen** (HTTP pass over the exit list). Settings — proxy list, account count, model — persist in `launcher.config.json`. Every flag below is reachable from the CLI directly.
 
+## 🚀 One command
+
+The captcha is solved for you — one command mints N accounts (with the daily $20 check-in credit) and keeps only the keys a live chat call verified:
+
+```bash
+node src/cli.js --count N        # N accounts, serial — the Turnstile widget is answered in a real Chrome
+```
+
+`--auto` is the default and nothing has to be passed: the embedded `src/solver.js` opens a headed Chrome, mounts the panel's Turnstile widget and returns the token automatically. `--dry` prints the resolved plan (count, exit pool, solver, model) and exits with **no file written and no network call**. `node src/launcher.js` (or `npm start`) is the same path as a menu.
+
+> ⚠️ **Terms & account risk.** This is an automation tool, not an account vendor. Bulk sign-ups and key minting are entirely your responsibility: they may breach the provider's Terms of Service and can get addresses, exits or accounts blocked. Use it only on infrastructure you are allowed to automate, and keep the request rate low.
+
 ## ✅ Verified working — every key is tested
 
 All checks below were re-run on **2026-10-21** from the shipped CLI (exit pool, no WARP).
