@@ -1,24 +1,69 @@
 #!/usr/bin/env node
 'use strict';
+
 /**
- * SeekAI launcher — prints the project wordmark and offers a numbered menu over
- * `src/cli.js`, so nothing has to be typed from memory. Settings (proxy file,
- * account count, model) persist in `launcher.config.json`.
+ * Interactive launcher for the compiled build.
  *
- *   node src/launcher.js
+ * The CLI's options stay configurable without reading its source: this launcher
+ * asks for them, remembers the answers in `launcher.config.json`, and then runs
+ * the CLI with the right flags — including the proxy list, which is the setting
+ * people most often need and cannot guess.
+ *
+ * Usage: node src/launcher.js            (menu)
+ *        node src/launcher.js --help
  */
+
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const { spawnSync } = require('child_process');
 
-const ROOT = path.join(__dirname, '..');
-const CLI = path.join(__dirname, 'cli.js');
+const ROOT = path.resolve(__dirname, '..');
 const CONFIG = path.join(ROOT, 'launcher.config.json');
-const KEYS = path.join(ROOT, 'keys.txt');
-const POOL = path.join(ROOT, 'proxies.txt');
+const CLI = path.join(__dirname, 'cli.js');
 
-/** Same wordmark as the README — keep the two in step. */
+const defaults = {
+  count: 50,
+  proxyFile: process.env['SEEKAI_PROXIES'] || 'proxies.txt',
+  model: "deepseek-ai/DeepSeek-V4-Flash-0731",
+  routerBase: 'http://localhost:20128',
+  routerPassword: '123456',
+};
+
+function loadConfig() {
+  try {
+    return { ...defaults, ...JSON.parse(fs.readFileSync(CONFIG, 'utf8')) };
+  } catch (e) {
+    return { ...defaults };
+  }
+}
+
+function saveConfig(cfg) {
+  try {
+    fs.writeFileSync(CONFIG, JSON.stringify(cfg, null, 2) + '\n');
+  } catch (e) {
+    console.error(`  ! could not write ${path.basename(CONFIG)}: ${e.message}`);
+  }
+}
+
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = (question, fallback) =>
+  new Promise((resolve) => {
+    const hint = fallback ? ` [${String(fallback).slice(0, 30)}${String(fallback).length > 30 ? '…' : ''}]` : '';
+    rl.question(`  ${question}${hint}: `, (answer) => resolve(answer.trim() || fallback || ''));
+  });
+
+function run(args, env = {}) {
+  console.log('');
+  const res = spawnSync(process.execPath, [CLI, ...args], {
+    windowsHide: true,
+    cwd: ROOT,
+    stdio: 'inherit',
+    env: { ...process.env, ...env },
+  });
+  if (res.status !== 0) console.log(`  ! exited with code ${res.status}`);
+}
+
 const BANNER_LOGO = String.raw`
 ███████╗███████╗███████╗██╗  ██╗ █████╗ ██╗
 ██╔════╝██╔════╝██╔════╝██║ ██╔╝██╔══██╗██║
@@ -28,79 +73,127 @@ const BANNER_LOGO = String.raw`
 ╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝
 `;
 
-const DEFAULTS = { count: 1, model: 'deepseek-ai/DeepSeek-V4-Flash-0731', pool: 'proxies.txt', gap: 20000, panelGap: 14000 };
-
-const loadConfig = () => {
-  try {
-    return { ...DEFAULTS, ...JSON.parse(fs.readFileSync(CONFIG, 'utf8')) };
-  } catch (e) {
-    return { ...DEFAULTS };
-  }
-};
-const saveConfig = (cfg) => fs.writeFileSync(CONFIG, JSON.stringify(cfg, null, 2) + '\n');
-const countLines = (file) => {
-  try {
-    return fs.readFileSync(file, 'utf8').split(/\r?\n/).filter((l) => l.trim() && !l.startsWith('#')).length;
-  } catch (e) {
-    return 0;
-  }
-};
-
-function banner(cfg) {
-  const keys = countLines(KEYS);
-  const exits = countLines(POOL);
-  const bar = '╔' + '═'.repeat(46) + '╗';
+function banner() {
+  const cyan = '\x1b[36m';
+  const dim = '\x1b[2m';
+  const bold = '\x1b[1m';
+  const reset = '\x1b[0m';
+  const title = 'seekai-bulk-apikey';
+  const tagline = "Free tier = one check-in per day worth $20 per account — Turnstile sign-up, keys chat-verified";
+  const lines = BANNER_LOGO.replace(/^\n/, '').replace(/\n$/, '').split('\n');
+  const width = Math.max(...lines.map((l) => [...l].length), [...title].length, [...tagline].length);
+  const pad = (s) => s + ' '.repeat(width - [...s].length);
+  const inner = width + 4;
   console.log('');
-  console.log(bar);
-  for (const line of BANNER_LOGO.trim('\n').split('\n')) console.log('║' + line.padEnd(46) + '║');
-  console.log('║' + 'seekai-bulk-apikey'.padEnd(46) + '║');
-  console.log(bar);
-  console.log(`  keys.txt ${keys} · proxies.txt ${exits} exit(s) · model ${cfg.model}`);
-  console.log(`  count ${cfg.count} · pool ${cfg.pool} · gap ${cfg.gap} ms · panel gap ${cfg.panelGap} ms`);
+  console.log(`${cyan}╔${'═'.repeat(inner)}╗${reset}`);
+  console.log(`${cyan}║${' '.repeat(inner)}║${reset}`);
+  for (const line of lines) console.log(`${cyan}║${reset}  ${bold}${pad(line)}${reset}  ${cyan}║${reset}`);
+  console.log(`${cyan}║${' '.repeat(inner)}║${reset}`);
+  console.log(`${cyan}║${reset}  ${pad(title)}  ${cyan}║${reset}`);
+  console.log(`${cyan}║${reset}  ${dim}${pad(tagline)}${reset}  ${cyan}║${reset}`);
+  console.log(`${cyan}║${' '.repeat(inner)}║${reset}`);
+  console.log(`${cyan}╚${'═'.repeat(inner)}╝${reset}`);
+  console.log(`  ${dim}seekai-bulk-apikey contributors${reset}`);
   console.log('');
 }
 
-function run(args) {
-  console.log(`\n$ node src/cli.js ${args.join(' ')}\n`);
-  const r = spawnSync(process.execPath, [CLI, ...args], { cwd: ROOT, stdio: 'inherit' });
-  console.log(`\n(exit ${r.status === null ? '?' : r.status})\n`);
+async function mintFlow(cfg) {
+  cfg.count = parseInt(await ask('How many accounts/keys do you want (any number)', cfg.count), 10) || cfg.count;
+  cfg.proxyFile = await ask('Proxy list file (one proxy per line)', cfg.proxyFile);
+  cfg.model = await ask('Model used for the live verification', cfg.model);
+  saveConfig(cfg);
+
+  if (!fs.existsSync(path.resolve(ROOT, cfg.proxyFile)) && !fs.existsSync(cfg.proxyFile)) {
+    console.log(`  ! ${cfg.proxyFile} not found — running WITHOUT a proxy (direct)`);
+    console.log('    (put one exit per line there to route through proxies: http://host:port, socks5://host:port or host:port)');
+  }
+  run(['--count', String(cfg.count), '--model', cfg.model], { ['SEEKAI_PROXIES']: cfg.proxyFile });
 }
 
-function ask(rl, question, dflt) {
-  return new Promise((resolve) => rl.question(`${question} [${dflt}] `, (a) => resolve(a.trim() || String(dflt))));
+async function verifyFlow(cfg) {
+  cfg.proxyFile = await ask('Proxy list file', cfg.proxyFile);
+  saveConfig(cfg);
+  run(['--verify-only'], { ['SEEKAI_PROXIES']: cfg.proxyFile });
 }
 
-(async () => {
+async function screenFlow(cfg) {
+  cfg.proxyFile = await ask('Proxy list file to screen', cfg.proxyFile);
+  saveConfig(cfg);
+  run(['--screen'], { ['SEEKAI_PROXIES']: cfg.proxyFile });
+}
+
+async function connectFlow(cfg) {
+  const { connectKeysFile, connect9Router } = require('./connect-9router.js');
+  cfg.routerBase = await ask('9Router base URL', cfg.routerBase);
+  cfg.routerPassword = await ask('9Router password', cfg.routerPassword);
+  saveConfig(cfg);
+  console.log('');
+  try {
+    await connectKeysFile({ base: cfg.routerBase, password: cfg.routerPassword });
+  } catch (e) {
+    if (!/no API keys/.test(e.message)) throw e;
+    console.log(`  ! ${e.message}`);
+    const apiKey = await ask('Single SeekAI key to register');
+    if (apiKey) await connect9Router({ base: cfg.routerBase, password: cfg.routerPassword, apiKey });
+  }
+}
+
+async function connectFlowOmni(cfg) {
+  const { connectKeysFile, connectOmniRoute } = require('./connect-omniroute.js');
+  cfg.routerBase = await ask('OmniRoute base URL', cfg.routerBase);
+  cfg.routerPassword = await ask('OmniRoute password', cfg.routerPassword);
+  saveConfig(cfg);
+  console.log('');
+  try {
+    await connectKeysFile({ base: cfg.routerBase, password: cfg.routerPassword });
+  } catch (e) {
+    if (!/no API keys/.test(e.message)) throw e;
+    console.log(`  ! ${e.message}`);
+    const apiKey = await ask('Single SeekAI key to register');
+    if (apiKey) await connectOmniRoute({ base: cfg.routerBase, password: cfg.routerPassword, apiKey });
+  }
+}
+
+async function main() {
   const cfg = loadConfig();
-  banner(cfg);
-
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const poolArgs = () => (fs.existsSync(path.join(ROOT, cfg.pool)) ? ['--pool', path.join(ROOT, cfg.pool)] : []);
-
-  for (;;) {
-    console.log('  1) mint        create accounts + claim the daily $20 check-in');
-    console.log('  2) verify      re-check every key in keys.txt');
-    console.log('  3) screen      HTTP screen of the exit list');
-    console.log('  4) settings    proxy file / count / model');
-    console.log('  5) 9router     register the provider + its keys locally');
-    console.log('  6) help        CLI flags');
-    console.log('  0) exit');
-    const choice = (await ask(rl, 'choose', '1')).trim();
-    if (choice === '0' || choice === 'q') break;
-    if (choice === '1') run(['--count', String(cfg.count), '--model', cfg.model, '--gap', String(cfg.gap), '--panel-gap', String(cfg.panelGap), ...poolArgs()]);
-    else if (choice === '2') run(['--verify-only', ...poolArgs()]);
-    else if (choice === '3') run(['--screen', ...poolArgs()]);
-    else if (choice === '4') {
-      cfg.pool = await ask(rl, 'proxy file', cfg.pool);
-      cfg.count = Number(await ask(rl, 'accounts per run', cfg.count)) || cfg.count;
-      cfg.model = await ask(rl, 'model for the live gate', cfg.model);
-      saveConfig(cfg);
-      console.log(`saved ${CONFIG}`);
-    } else if (choice === '5') run(['--connect-9router']);
-    else if (choice === '6') run(['--help']);
-    else console.log('unknown choice');
-    console.log('');
+  if (process.argv.includes('--connect-9router')) {
+    await connectFlow(cfg);
+    rl.close();
+    return;
   }
+
+  if (process.argv.includes('--connect-omniroute')) {
+    await connectFlowOmni(cfg);
+    rl.close();
+    return;
+  }
+  banner();
+  console.log('  1) Mint keys      — create one account per key and verify each with a live chat call');
+  console.log('  2) Verify keys    — re-check every key in keys.txt with a live chat call');
+  console.log('  3) Screen proxies — test your proxy list for exits that reach SeekAI');
+  console.log('  4) Settings       — show what this launcher remembers');
+  console.log('  5) Help           — CLI options and notes');
+  console.log('  6) Connect to 9Router — register the keys in keys.txt with a local 9Router');
+  console.log('  7) Connect to OmniRoute — register the keys in keys.txt with a local OmniRoute');
+  console.log('  q) Quit\n');
+  const choice = (await ask('Choose', '1')).toLowerCase();
+
+  if (choice === '1') await mintFlow(cfg);
+  else if (choice === '2') await verifyFlow(cfg);
+  else if (choice === '3') await screenFlow(cfg);
+  else if (choice === '4') console.log('\n' + JSON.stringify(cfg, null, 2));
+  else if (choice === '5') run(['--help']);
+  else if (choice === '6') await connectFlow(cfg);
+  else if (choice === '7') await connectFlowOmni(cfg);
   rl.close();
+}
+
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  console.log('Interactive launcher: run `node src/launcher.js` and pick a menu item.');
   process.exit(0);
-})();
+}
+
+main().catch((e) => {
+  console.error('[fatal]', e.message);
+  process.exit(1);
+});

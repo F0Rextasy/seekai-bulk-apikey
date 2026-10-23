@@ -2,30 +2,33 @@
   "name": "seekai-bulk-apikey",
   "version": "1.0.0",
   "description": "Bulk-create SeekAI (seekai.cc) accounts with auto-generated API keys and claim the daily $20 check-in credit — OpenAI-compatible inference + 9Router connector.",
+  "license": "MIT",
+  "type": "commonjs",
   "bin": {
-    "seekai-bulk-apikey": "src/cli.js"
+    "seekai-bulk-apikey": "src/cli.js",
+    "seekai-bulk-apikey-launcher": "src/launcher.js"
   },
-  "files": [
-    "src"
-  ],
+  "main": "src/cli.js",
   "engines": {
     "node": ">=18"
   },
   "scripts": {
-    "mint": "node src/cli.js --count 1",
-    "verify": "node src/cli.js --verify-only",
-    "screen": "node src/cli.js --screen",
-    "launcher": "node src/launcher.js"
+    "start": "node src/launcher.js",
+    "mint": "node src/cli.js",
+    "9router": "node src/connect-9router.js",
+    "omniroute": "node src/connect-omniroute.js"
   },
   "keywords": [
+    "api-key",
+    "bulk",
+    "register",
+    "launcher",
     "seekai",
-    "seekai.cc",
-    "api-keys",
-    "openai-compatible",
-    "9router",
-    "bulk-apikey"
+    "apikey"
   ],
-  "dependencies": {},
-  "license": "MIT",
-  "private": false
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ]
 }

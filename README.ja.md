@@ -11,16 +11,17 @@
 
 # seekai-bulk-apikey
 
-**自動生成された API キーで [SeekAI](https://seekai.cc) アカウントを一括作成 — 1 アカウントあたり 1 日 $20 のチェックインクレジット — OpenAI 互換の推論 + [9Router](https://9router.com) コネクタ。**
+**SeekAI (seekai.cc) のアカウントを自動生成された API キーとともに一括作成し、毎日の $20 チェックインクレジットを獲得 — OpenAI 互換の推論 + 9Router コネクタ。**
 
 [![Node](https://img.shields.io/badge/Node-%E2%89%A518-3DA639?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-blue?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/license-MIT-6ea8fe?style=for-the-badge)](LICENSE)
-[![Models](https://img.shields.io/badge/models-1%20verified-412991?style=for-the-badge)](https://seekai.cc)
+[![Models](https://img.shields.io/badge/models-1%20served-412991?style=for-the-badge)](https://seekai.cc)
 [![9Router](https://img.shields.io/badge/9Router-connector-8B5CF6?style=for-the-badge)](#-connect-to-9router)
 [![OmniRoute](https://img.shields.io/badge/OmniRoute-connector-8B5CF6?style=for-the-badge)](#-connect-to-omniroute)
+[![X](https://img.shields.io/badge/X-%40bigbullapp-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/bigbullapp)
 
-[🛠 クイックスタート](#-quick-start) · [✅ 検証済み](#-verified-working--every-key-is-tested) · [🧭 仕組み](#-how-it-works) · [🤖 モデルと無料枠](#-models--free-tier) · [⚙️ オプション](#️-cli-options) · [🛰️ プロキシ](#️-behind-a-proxy) · [🔌 9Router](#-connect-to-9router) · [🐞 問題](#-issues)
+[🛠 クイックスタート](#-quick-start) · [🎁 無料枠](#-free-tier--how-much-you-get) · [🤖 モデル](#-models--all-1-of-them) · [🧪 API の使い方](#-how-to-use-the-api) · [✅ 検証済み](#-verified-working--every-key-is-tested) · [🧭 仕組み](#-how-it-works) · [🔌 9Router](#-connect-to-9router) · [🔌 OmniRoute](#-connect-to-omniroute) · [⚙️ オプション](#️-cli-options) · [🛰️ プロキシ](#️-behind-a-proxy) · [🐞 問題](#-issues)
 
 </div>
 
@@ -34,145 +35,207 @@
 
 ## ✨ これが存在する理由
 
-SeekAI は `seekai.cc` 上で New API パネルを運営しています。そのウェルカムクレジットは誤差のようなもの（クォータ `1`）ですが、本当の無料枠は**毎日の签到（チェックイン）: 10,000,000 クォータ = 1 アカウントあたり $20、パネルの 1 日につき 1 回**です。登録はごく普通のメールアドレス + パスワードのフォームで、OAuth も電話番号もカードも不要ですが、ゲートされたすべてのステップ（コード要求 + 登録、サインイン、そしてチェックイン自体）には **Cloudflare Turnstile** が付いており、このウィジェットはこのパネルでは**ヘッド付き Chrome** でしか生成されません。このツールは CDP 経由で実際の Chrome を操作し（依存関係ゼロ）、アカウントを消費する前に出口をスクリーニングし、キーを生成し、その日のクレジットを獲得し、実際の補完に応答したキーだけを保持します。
+SeekAI は `seekai.cc` 上で New API パネル (`v1.0.0-rc.25`) を運用しており、その**無料枠は毎日の签到 (チェックイン): 10,000,000 クォータ = アカウントあたり $20 で、パネルの 1 日につき 1 回獲得できます**。登録は通常のメールアドレス + パスワードのフォームで (OAuth は不要)、ウェルカムクレジットはトークンのみ (クォータ 1) です — つまりチェックインこそがお金です。ゲートされたすべてのステップ — コード要求 + 登録、サインイン、そしてチェックイン自体 — は **Cloudflare Turnstile** トークンを伴い、そのウィジェットはこのパネルでは**ヘッド付き Chrome** でのみ発行されるため、このツールは CDP 経由で実際のブラウザを操作し、アカウントを消費する前に出口をスクリーニングします。
 
-## 🤖 モデルと無料枠
+## 🎁 無料枠 — どれだけ得られるか
+
+| 項目 | 値 |
+| --- | --- |
+| 毎日のクレジット | **アカウントあたりパネルの 1 日につき 1 回のチェックイン = 10,000,000 クォータ = $20** (`quota_per_unit 500000`) |
+| ウェルカムクレジット | クォータ `1` (≈ $0.000002) — 無料枠はチェックインであり、サインアップではない |
+| 実測実行 | **2026-10-21 に 38 アカウント中 12 がチェックイン → +120,000,000 クォータ = 1 回の実行で $240** (`providers/seekai.cc/out/checkin-2026-10-21.json`) |
+| 同日 2 回目の呼び出し | `今日已签到` (冪等、正常としてカウント) |
+| パネルの日 | **UTC+8** — 16:00 UTC に切り替わる |
+| レート制限 | パネルは IP 全体を約 **5 リクエスト/分** に制限 (`您已达到总请求数限制`) → 呼び出し間隔は ≥14 秒 |
+| カード / 電話 | **不要** — 支払いステップはどこにもなく、電話番号も要求されない |
+| 複数アカウント条項 | 非公開: `/api/user/agreement` は管理者専用 (403 `AUTH_INSUFFICIENT_PRIVILEGE`) |
+
+> 💡 無料枠は SeekAI によって設定され、変更される可能性があります。最新の数値は [seekai.cc](https://seekai.cc) で確認してください — そしてツール自身のゲートに判断させてください:
+
+```bash
+node src/cli.js --verify-only     # every key in keys.txt is re-tested with a real chat call
+```
+
+## 🤖 モデル — そのうちの 1 つすべて
+
+パネルは、このツールが作成するアカウントで検証済みのチャット ID を 1 つ宣伝しています:
 
 | モデル ID | 備考 |
 | --- | --- |
-| `deepseek-ai/DeepSeek-V4-Flash-0731` | すべてのキーで検証された唯一の ID（2026-10-21 時点で 18/18）。推論ルートとして応答する |
+| `deepseek-ai/DeepSeek-V4-Flash-0731` | 2026-10-21 にすべてのキーをチャット検証済み; 推論ルートとして応答する |
 
-`GET /v1/models` はこれらのアカウントに対して **29 個の ID** を返しました。`:free` サフィックスを持つ ID は `401 API key is disabled` で拒否されるため、ゲートは上記の ID を使用し、アカウントが呼び出せるものにフォールバックします。
+`GET /v1/models` はこのアカウントが呼び出せる ID を返します; `:free` サフィックスを持つ ID は **401 `API key is disabled`** で拒否されるため、ツールは上記の ID でゲートします (そして拒否されない `/v1/models` が提供するものにフォールバックします)。
 
-**推論の罠:** このリレーは回答を `message.reasoning` に入れ、`message.content` を**空**のままにします。`content` だけを読むゲートは生きたキーを死んだものと判定します — このツールは `content || reasoning_content || reasoning` を受け入れ、どれがテキストを運んだかを報告します。
+応答の形が重要です: このリレーはテキストを **`message.reasoning`** に入れ、`message.content` を**空**のままにします (短い `max_tokens` では `finish_reason` は `length` です)。`content` だけを見るゲートは生きたキーを「使用不可」と判定してしまうため、ツールは `content || reasoning_content || reasoning` を受け入れ、どれが回答を運んだかを報告します。
 
-| 無料枠で得られるもの | 値 |
-| --- | --- |
-| 毎日のチェックイン | **10,000,000 クォータ = 1 アカウントあたり $20、パネルの 1 日につき 1 回**（`quota_per_unit 500000`） |
-| 同日の 2 回目の呼び出し | `今日已签到`（冪等 — 正常とみなされる） |
-| パネルの日 | **UTC+8** — 16:00 UTC に切り替わる |
-| 実測実行（2026-10-21） | **38 アカウント中 12 がチェックイン → +120,000,000 クォータ = 1 回の実行で $240** |
-| レート制限 | おおよそ **IP あたり毎分 5 リクエスト**（`您已达到总请求数限制`）→ 呼び出しは 14 秒以上空ける |
-| カード / 電話 | フローのどこにも不要 |
+## 🧪 API の使い方
 
-レート制限の挙動、実測: 間隔を無視すると `200 200 200 200 200` の後に `429`。`already-checked-in` は `200 {"success":false,"message":"今日已签到"}` を返す。
-
-## 🛠 クイックスタート
+ベース URL **`https://seekai.cc/v1`** — OpenAI 互換のチャット補完。キーは **`sk-` プレフィックスのない 48 文字**です (パネルの一覧ではマスクされます; ツールは `POST /api/token/<id>/key` で値を明らかにします)。
 
 ```bash
-git clone https://github.com/F0Rextasy/seekai-bulk-apikey
-cd seekai-bulk-apikey
-printf 'socks5://host:port\n' > proxies.txt   # OPTIONAL — without it the tool runs direct
-node src/launcher.js        # interactive menu
-# or directly:
-node src/cli.js --count 1        # one sign-up + the daily $20 check-in in a real Chrome
-node src/cli.js --verify-only    # re-check every key in keys.txt
-node src/cli.js --screen         # HTTP screen of your exit list
-```
-
-`keys.txt` は `GET /v1/models` **および**実際の補完の後にのみ書き込まれます。`accounts.json` はアカウントの状態（ユーザー名、パスワード、メール、キー、チェックインクレジット）を保持します。
-
-### 🖱️ ランチャー
-
-`node src/launcher.js` は上記のワードマークを表示し、番号付きメニューを提供します: **mint**（N アカウント、直列）、**verify**（`keys.txt`）、**screen**（出口リスト）、**settings**（プロキシファイル、モデル、カウント — `launcher.config.json` に保存）、**connect to 9Router**、ヘルプ、終了。各項目は同じ `src/cli.js` フラグの薄いラッパーです。
-
-## ✅ 検証済みで動作 — すべてのキーがテストされる
-
-すべてのチェックは **2026-10-21** にこのツールから実行されました。
-
-| チェック | 結果 |
-| --- | --- |
-| `--screen`（HTTP 出口審査） | サインインページがレンダリング + `challenges.cloudflare.com/turnstile/v0/api.js` が **200** を返す + API ホストが応答 |
-| フロー内の出口スクリーニング | ウィジェットが生成されない回線は、メールボックスを消費する**前に**拒否される |
-| 登録 | `POST /api/user/register?turnstile=` → メールで送られたコードの後に **200** |
-| キー生成 | `POST /api/token/` → リスト → `POST /api/token/<id>/key` → **200**、48 文字のキー |
-| 毎日のチェックイン | `POST /api/user/checkin?turnstile=` → **`quota_awarded: 10000000`**；1 回の実行で 12 アカウント = **$240** |
-| キーごとのチャット | `deepseek-ai/DeepSeek-V4-Flash-0731` で **18 / 18 キーが 200**（テキストは `reasoning` 内） |
-| チェックに失敗したキー | `keys.txt` に書き込まれない |
-
-いつでも再チェック:
-
-```bash
-node src/cli.js --verify-only            # every key in keys.txt through the live gate
 curl https://seekai.cc/v1/chat/completions \
   -H "Authorization: Bearer <48-char-key>" -H "Content-Type: application/json" \
   -d '{"model":"deepseek-ai/DeepSeek-V4-Flash-0731","messages":[{"role":"user","content":"Reply with one short sentence: what is 2+2?"}],"max_tokens":64}'
 ```
 
+```python
+from openai import OpenAI
+c = OpenAI(base_url="https://seekai.cc/v1", api_key="<your key>")
+m = c.chat.completions.create(model="deepseek-ai/DeepSeek-V4-Flash-0731",
+      messages=[{"role": "user", "content": "hi"}], max_tokens=64).choices[0].message
+print(m.content or m.reasoning)   # this relay may answer in reasoning
+```
+
+自身の `remain_quota` が 0 で無制限でもないトークンはまったく認証されません — キーは `unlimited_quota: true` で作成してください (ツールはそうします)。
+
+## 🛠 クイックスタート
+
+```bash
+cd seekai-bulk-apikey
+printf 'socks5://host:port\n' > proxies.txt   # optional — without it the tool runs direct
+node src/launcher.js        # interactive: mint / verify / screen
+
+# or directly:
+node src/cli.js --count 1        # one sign-up + daily $20 check-in in a real Chrome
+node src/cli.js --verify-only    # re-test every key already in keys.txt
+node src/cli.js --screen         # HTTP screen of the exit list
+```
+
+サインアップ (およびチェックイン) には実際の**ヘッド付き** Chrome が必要です: このパネルでの実測では、`--headless=new` と `--headless=old` は Turnstile ウィジェットを 60 秒間空のままにしますが、ヘッド付きウィンドウ — 表示または画面外 — は 2〜4 秒で応答します。`keys.txt` は `GET /v1/models` **および**実際の補完の後にのみ書き込まれます; `accounts.json` はアカウント状態 (ユーザー名、パスワード、メール、キー、チェックインクレジット) を保持します。
+
+### 🖱️ ランチャー
+
+`node src/launcher.js` はタスクモジュール上のメニューです: **mint** (新しいアカウント、その検証済みメール、キー、毎日の $20 チェックイン)、**verify** (`keys.txt` に対してチャットゲートを再実行)、**screen** (出口リストに対する HTTP パス)。設定 — プロキシリスト、アカウント数、モデル — は `launcher.config.json` に永続化されます。以下のすべてのフラグは CLI から直接到達可能です。
+
+## ✅ 検証済みで動作 — すべてのキーがテスト済み
+
+以下のすべてのチェックは **2026-10-21** に出荷された CLI から再実行されました (出口プール、WARP なし)。
+
+| チェック | 結果 |
+| --- | --- |
+| `--screen` (HTTP 出口審査) | サインインページがレンダリングされる + `challenges.cloudflare.com/turnstile/v0/api.js` が 200 を返す + API ホストが応答する必要がある |
+| Chrome での出口スクリーン (フロー内) | ウィジェットが発行されない行は、メールボックスが消費される**前に**拒否される (これが 2026-10-14 のブロッカーで、今はハードゲート) |
+| サインアップ | メールコード後に `POST /api/user/register?turnstile=` → **200** (`success: true`) |
+| キー作成 | `POST /api/token/` → 一覧 → `POST /api/token/<id>/key` → **200**、48 文字のキー |
+| 毎日のチェックイン | `POST /api/user/checkin?turnstile=` → **`quota_awarded: 10000000`** ($20); 1 回の実行で 12 アカウント = **$240** |
+| キーごとのチャット | `deepseek-ai/DeepSeek-V4-Flash-0731` で**すべてのキーが 200** (回答は `reasoning` で運ばれる) — この CLI から出口ローテーション付きで再実行 |
+| `401 API key is disabled` | **出口依存であり、キーの判定ではない**: 3 つのキーが同じ分に 1 つの出口からそれを返し、別の出口から 200 を返したため、ゲートはその回答を次の出口で再試行する |
+| チェックに失敗したキー | `keys.txt` に書き込まれることはない (ゲートは出口クラスの失敗を 1 回再試行する) |
+
+> **品質ゲート。** ここにあるすべてのキーは `keys.txt` に書き込まれる前にライブの `chat-200` を通過しました
+> (死んだキーは決して出荷されません)。ルーターのコンボもモデルレベルで同じルールに従います: エントリは
+> **モデルが `chat-200` を返し、ツールを呼び出せる場合にのみ**追加されます — ツールサポートのないモデル、
+> 死んだキー、死んだプロバイダーは追加されずに削除されます。検証ステップはいつでも再実行できます;
+> 失敗は報告され、決して隠されません。
+
 ## 🧭 仕組み
+
+```
+inbox (one address per account)                                  a fresh address per account
+   │
+   ├─▶ sign-up: SeekAI page → e-mail address → code / link from the inbox
+   ├─▶ session: the account's cookies or access token in hand
+   ├─▶ key mint: the account's key endpoint → plaintext key returned once (written to disk immediately)
+   └─▶ live proof: POST https://seekai.cc/v1/chat/completions → real content = the key is live
+```
 
 | ステップ | 呼び出し | 備考 |
 | --- | --- | --- |
-| スクリーニング | Chrome での `/sign-in` | パネルのウィジェットがマウント**し、生成される**必要がある。ページは読み込むが決して応答しない回線は登録できない |
-| メールボックス | Emailnator の gmail ボックス | アドレスはリサイクルされるため、`seekai` からのメールのみ受け入れる |
-| 登録 | `GET /api/verification?email=&turnstile=` | **1 つのトークンがコード要求と登録呼び出しの両方をカバーする** |
-| 登録 | `POST /api/user/register?turnstile=` | ユーザー名、パスワード、メール、verification_code |
-| ログイン | `POST /api/user/login?turnstile=` | 独自のトークン → `data.access_token` |
-| キー | `POST /api/token/` → リスト → `/api/token/<id>/key` | これらのルートにキャプチャはない。リストはマスクのみ表示 |
-| チェックイン | `POST /api/user/checkin?turnstile=` | 独自のトークン → `quota_awarded: 10000000` |
-| ゲート | `GET /v1/models` + 1 回の補完 | **`content` または `reasoning` を伴う 200** → キーが書き込まれる |
+| screen | Chrome での `/sign-in` | パネル自身のウィジェットがマウント**し発行する**必要がある; ページを読み込むが決して応答しない行は登録できない |
+| mailbox | Emailnator gmail ボックス | レールはアドレスをリサイクルするため、`seekai` からのメールのみが受け入れられる |
+| sign-up | `/sign-up` → `GET /api/verification?email=&turnstile=` | 1 つのトークンがコード要求**および**登録呼び出しをカバーする |
+| register | `POST /api/user/register?turnstile=` | ボディ: username, password, e-mail, verification_code |
+| login | `POST /api/user/login?turnstile=` | 自身のトークン → `data.access_token` |
+| key | `POST /api/token/` → 一覧 → `/api/token/<id>/key` | これらのルートにキャプチャはない; 一覧はマスクのみを表示する |
+| check-in | `POST /api/user/checkin?turnstile=` | 自身のトークン → `quota_awarded: 10000000` |
+| gate | `GET /v1/models` + 1 回の補完 | `content` **または** `reasoning` を伴う 200 → キーが書き込まれる |
 
-ここでの Turnstile トークンは**単回使用かつドキュメントに紐づく**ため、別のコンテキストで生成されたトークンは `Turnstile 校验失败` を返します。**ヘッドレス Chrome はこのパネルでは動作しません** — 実測: `--headless=new` と `--headless=old` はウィジェットを 60 秒間空のままにしますが、ヘッド付きウィンドウ（可視または画面外）は 2〜4 秒で応答します。`--headless` は診断用としてのみ存在します。
+パネルはまた、キーとは何の関係もない理由で **`401 API key is disabled`** を返します (2026-10-21 実測: 同じキーで、1 つの出口は 401、別の出口は 1 分以内に 200) — 検証実行はそれを信じる前に出口をローテーションすべきです。
+
+ここでの Turnstile トークンは**単一使用かつドキュメントにバインド**されています: 別のコンテキストで生成されたトークンは `Turnstile 校验失败` を返します。Playwright スタイルの自動化は不要です — プレーンな CDP の `Runtime.evaluate` + `Input.dispatchMouseEvent` クリックで十分であり、このゼロ依存クライアントが行うのはそれです。
 
 ## ⚙️ CLI オプション
 
+```bash
+node src/cli.js --count 5                  # five sign-ups, serial (one headed Chrome at a time)
+node src/cli.js --model deepseek-ai/DeepSeek-V4-Flash-0731
+node src/cli.js --verify-only              # re-check keys.txt
+node src/cli.js --screen                   # HTTP screen of the exit list
+node src/cli.js --connect-9router          # register provider + keys on a local 9Router
+node src/cli.js --help
+```
+
 | フラグ | デフォルト | 意味 |
 | --- | --- | --- |
-| `--count N` | `1` | 生成するアカウント数、直列 |
+| `--count N` | `1` | 作成するアカウント数、直列 |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | ライブゲートに使用するモデル |
 | `--pool <file>` | `proxies.txt` | 出口リスト、1 行につき 1 プロキシ — オプション |
 | `--tries N` | `3` | アカウントごとにスクリーニングする出口候補 |
-| `--mint-tries N` | `2` | 出口ごとの完全な登録試行（新しいメールボックス + Chrome） |
+| `--mint-tries N` | `2` | 出口ごとの完全なサインアップ試行 (新しいメールボックス + Chrome) |
 | `--gap MS` | `20000` | アカウント間の一時停止 |
-| `--panel-gap MS` | `14000` | このパネルの API 呼び出し間の一時停止 |
+| `--panel-gap MS` | `14000` | このパネルの API 呼び出し間の一時停止 (5 リクエスト/分) |
 | `--code-timeout S` | `240` | メールコードを待つ秒数 |
 | `--keys <file>` | `keys.txt` | `--verify-only` / `--connect-9router` 用のキーファイル |
-| `--headless` | off | 診断専用 — Turnstile は生成されない |
-| `--browser <exe>` | auto | Chrome バイナリ（環境変数 `CHROME_PATH`） |
-| `--debug-port N` | auto | Chrome DevTools ポート |
-| `--verify-only` · `--screen` · `--connect-9router` · `--help` | | モード |
+| `--headless` | off | **診断専用** — Turnstile は発行されず、すべての作成が失敗する |
 
 ## 🛰️ プロキシの背後で
 
-- **プールあり:** `--pool <file>`（または `SEEKAI_PROXIES` 環境変数）。すべてのリクエスト — Chrome ブラウザを含む — が 1 つの出口を経由し、フェイルクローズド: 候補はまず審査され（サインインのレンダリング + Turnstile スクリプト 200）、実行はアカウント全体を通してその出口に固定されます。
-- **プールなし:** ツールは直接接続し、`running WITHOUT a proxy (direct)` と表示します。それ以外は何も変わりません。
-- **ここでは出口の品質が成功を決めます。** 2026-10-21 に、生のプールはほとんどが `no login form` / `no turnstile token` を返しました。26 の候補のうち、レールを実行できたのは **8** のみでした。まずスクリーニングし、それから生成してください。
-- ユーザー名/パスワード付きの SOCKS5 行はスキップされます（Chrome はそれらに認証できません）。認証情報付きの HTTP プロキシは Fetch ドメインを通じて処理されます。
+**オプション — 規模を拡大する場合は推奨 (IP ごとの制限、BAN)。** ツールはプロキシなしでも動作します。
+
+- **プールあり:** `--pool <file>` を渡す (または `SEEKAI_PROXIES` を設定する) と、すべてのリクエスト — Chrome ブラウザを含む — がそのリストの出口を経由し、フェイルクローズドになります: 各候補は最初に審査され (サインインページがレンダリング + Turnstile スクリプトが 200)、その後実行はアカウント全体を通じてその出口に固定されたままになります。
+- **プールなし:** CLI は `running WITHOUT a proxy (direct)` と表示し、直接接続します。サインアップ、キー作成、チェックインについて何も変わりません — パケットが出ていく場所だけが変わります。
+- **ここでは出口の品質が成功を決めます。** 2026-10-21 に、生のプールはほとんどが `no login form` / `no turnstile token` を返しました; 26 の候補のうち実際にレールを実行できたのは **8** だけでした。まずスクリーニングし、それから作成してください。
+- ユーザー名/パスワード付きの SOCKS5 行はスキップされます: Chrome はそれらに対して認証できません (認証情報付きの HTTP プロキシは Fetch ドメインを通じて処理されます)。
 
 ## 📄 ファイル
 
 | パス | 内容 |
 | --- | --- |
-| `keys.txt` | 1 行につき 1 つのライブ検証済みキー — git で無視される |
-| `accounts.json` | ユーザー名 / パスワード / メール / キー / チェックイン状態 — git で無視される |
-| `proxies.txt` | あなたの出口 — git で無視される |
-| `out/` | 実行ログ、失敗のスクリーンショット、`attempts.jsonl` — git で無視される |
+| `keys.txt` | 1 行につき 1 つのライブ検証済みキー — git 無視 |
+| `accounts.json` | ユーザー名 / パスワード / メール / キー / チェックイン状態、失敗した試行を含む |
+| `proxies.txt` | あなたの出口 — git 無視 |
+| `out/` | 実行ログ、失敗のスクリーンショット、`attempts.jsonl` 台帳 — git 無視 |
 
 ## 🔌 9Router に接続
 
+[9Router](https://9router.com) はセルフホストの OpenAI 互換ルーターです:
+
 ```bash
-node src/cli.js --connect-9router                 # defaults: http://localhost:20128, password 123456
-node src/cli.js --connect-9router --9router-base http://localhost:20128 --9router-password 123456
+node src/connect-9router.js --base http://localhost:20128 --password 123456
 ```
 
-デフォルト: `--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。モデルは `seekai/<model id>` として提供されます。
+デフォルト: `--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。モデルは `seekai/<model id>` として提供されます。CLI は同じことを 1 回で実行できます: `node src/cli.js --connect-9router`。
 
 ## 🔌 OmniRoute に接続
 
+[OmniRoute](https://omniroute.online) はセルフホストの OpenAI 互換ルーターです:
+
 ```bash
-node src/cli.js --connect-omniroute                 # defaults: http://localhost:20128, password 123456
-node src/cli.js --connect-omniroute --omniroute-base http://localhost:20128 --omniroute-password 123456
+node src/connect-omniroute.js --base http://localhost:20128 --password 123456
 ```
 
-デフォルト: `--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。モデルは `seekai/<model id>` として提供されます。
+デフォルト: `--prefix seekai`、`--base-url https://seekai.cc/v1`、`--model deepseek-ai/DeepSeek-V4-Flash-0731`。モデルは `seekai/<model id>` として提供されます。CLI は同じことを 1 回で実行できます: `node src/cli.js --connect-omniroute`。
+
+## 🔑 1 つのキーで得られるもの
+
+| | |
+| --- | --- |
+| 🏢 プロバイダー | **SeekAI** — [seekai.cc](https://seekai.cc) |
+| 🎁 プロバイダーが提供するもの | **アカウントあたり 1 日 $20**、1 回のチェックインで獲得 (`quota_awarded: 10000000`) |
+| 🔑 1 つのキーで得られるもの | `https://seekai.cc/v1` 上のアカウントのモデルリスト、チェックインクレジットに対して課金される |
+| 🌐 API の形 | OpenAI 互換: `POST https://seekai.cc/v1/chat/completions` (回答は `reasoning` で届くことがある) |
+| 🔒 あなたのデータ | `seekai.cc` とあなたの受信トレイバックエンドのみが接触される |
+
 ## 🐞 問題
 
-SeekAI が登録フォーム、Turnstile サイトキー（`0x4AAAAAAEcpuQE_WXc4ZfG8`）、チェックイン報酬、またはモデルカタログを変更した場合、ツールはそこで停止し、その旨を報告します。コマンドと正確な出力を添えて **[issue を開いてください](../../issues)**。
+SeekAI がサインアップフォーム、その Turnstile サイトキー (`0x4AAAAAAEcpuQE_WXc4ZfG8`)、チェックイン報酬、またはモデルカタログを変更した場合、ツールはそこで停止し、そう告げます。コマンドと正確な出力を添えて **[issue を開いてください](../../issues)**。
 
 ## 📄 ライセンス
 
-[MIT](LICENSE) © seekai-bulk-apikey contributors
+MIT © 2026 — [LICENSE](LICENSE) を参照。
 
----
+<div align="center">
 
-## ⚠️ アカウントリスクと最小化
+**[MIT](LICENSE)** © 2026 seekai-bulk-apikey contributors
+
+</div>
