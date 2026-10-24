@@ -182,7 +182,7 @@ node src/cli.js --help
 | `--count N` | `1` | contas a criar, em série |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | modelo usado para o gate ativo |
 | `--pool <file>` | `proxies.txt` | lista de saídas, uma linha por proxy — opcional |
-| `--tries N` | `3` | candidatos de saída testados por conta |
+| `--exits N` | `6` | candidatos de saída testados por conta |
 | `--mint-tries N` | `2` | tentativas completas de cadastro (nova caixa de correio + Chrome) por saída |
 | `--gap MS` | `20000` | pausa entre contas |
 | `--panel-gap MS` | `14000` | pausa entre chamadas da API deste painel (5 req/min) |

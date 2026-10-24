@@ -182,7 +182,7 @@ node src/cli.js --help
 | `--count N` | `1` | Anzahl der zu erstellenden Konten, seriell |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | Modell, das für das Live-Gate verwendet wird |
 | `--pool <file>` | `proxies.txt` | Exit-Liste, eine Zeile pro Proxy — optional |
-| `--tries N` | `3` | Exit-Kandidaten, die pro Konto geprüft werden |
+| `--exits N` | `6` | Exit-Kandidaten, die pro Konto geprüft werden |
 | `--mint-tries N` | `2` | vollständige Registrierungsversuche (frisches Postfach + Chrome) pro Exit |
 | `--gap MS` | `20000` | Pause zwischen den Konten |
 | `--panel-gap MS` | `14000` | Pause zwischen den API-Aufrufen dieses Panels (5 Anfragen/Min) |

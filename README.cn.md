@@ -182,7 +182,7 @@ node src/cli.js --help
 | `--count N` | `1` | 要创建的账户数量，串行 |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | 用于实时门控的模型 |
 | `--pool <file>` | `proxies.txt` | 出口列表，每行一个代理 —— 可选 |
-| `--tries N` | `3` | 每个账户筛选的出口候选数 |
+| `--exits N` | `6` | 每个账户筛选的出口候选数 |
 | `--mint-tries N` | `2` | 每个出口的完整注册尝试次数（新邮箱 + Chrome） |
 | `--gap MS` | `20000` | 账户之间的暂停 |
 | `--panel-gap MS` | `14000` | 此面板 API 调用之间的暂停（5 请求/分钟） |

@@ -182,7 +182,7 @@ node src/cli.js --help
 | `--count N` | `1` | 생성할 계정 수, 직렬 |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | 실제 게이트에 사용되는 모델 |
 | `--pool <file>` | `proxies.txt` | 출구 목록, 프록시당 한 줄 — 선택 사항 |
-| `--tries N` | `3` | 계정당 스크린되는 출구 후보 |
+| `--exits N` | `6` | 계정당 스크린되는 출구 후보 |
 | `--mint-tries N` | `2` | 출구당 전체 가입 시도 (새 메일박스 + Chrome) |
 | `--gap MS` | `20000` | 계정 간 일시정지 |
 | `--panel-gap MS` | `14000` | 이 패널의 API 호출 간 일시정지 (분당 5회 요청) |

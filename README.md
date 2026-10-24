@@ -181,7 +181,7 @@ node src/cli.js --help
 | `--count N` | `1` | accounts to mint, serial |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | model used for the live gate |
 | `--pool <file>` | `proxies.txt` | exit list, one line per proxy — optional |
-| `--tries N` | `3` | exit candidates screened per account |
+| `--exits N` | `6` | exit candidates screened per account |
 | `--mint-tries N` | `2` | full sign-up attempts (fresh mailbox + Chrome) per exit |
 | `--gap MS` | `20000` | pause between accounts |
 | `--panel-gap MS` | `14000` | pause between this panel's API calls (5 req/min) |

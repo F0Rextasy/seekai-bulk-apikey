@@ -182,7 +182,7 @@ node src/cli.js --help
 | `--count N` | `1` | cuentas a crear, en serie |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | modelo usado para la verificación en vivo |
 | `--pool <file>` | `proxies.txt` | lista de salidas, una línea por proxy — opcional |
-| `--tries N` | `3` | candidatos de salida examinados por cuenta |
+| `--exits N` | `6` | candidatos de salida examinados por cuenta |
 | `--mint-tries N` | `2` | intentos completos de registro (buzón nuevo + Chrome) por salida |
 | `--gap MS` | `20000` | pausa entre cuentas |
 | `--panel-gap MS` | `14000` | pausa entre las llamadas a la API de este panel (5 solicitudes/min) |

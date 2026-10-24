@@ -182,7 +182,7 @@ node src/cli.js --help
 | `--count N` | `1` | oluşturulacak hesap sayısı, seri |
 | `--model <id>` | `deepseek-ai/DeepSeek-V4-Flash-0731` | canlı kapı için kullanılan model |
 | `--pool <file>` | `proxies.txt` | çıkış listesi, satır başına bir proxy — isteğe bağlı |
-| `--tries N` | `3` | hesap başına taranan çıkış adayı |
+| `--exits N` | `6` | hesap başına taranan çıkış adayı |
 | `--mint-tries N` | `2` | çıkış başına tam kayıt denemesi (yeni posta kutusu + Chrome) |
 | `--gap MS` | `20000` | hesaplar arası bekleme |
 | `--panel-gap MS` | `14000` | bu panelin API çağrıları arası bekleme (5 istek/dk) |
