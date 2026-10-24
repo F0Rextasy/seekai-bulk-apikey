@@ -34,7 +34,7 @@
  *   --count N        accounts (= keys) to mint, serial                     [1]
  *   --model <id>     model used for the live gate  [deepseek-ai/DeepSeek-V4-Flash-0731]
  *   --pool <file>    proxy list, one exit per line (env SEEKAI_PROXIES)  [optional]
- *   --tries N        exit candidates screened per account                  [3]
+ *   --exits N        exit candidates screened per account                  [6]
  *   --mint-tries N   full sign-up attempts (fresh mailbox + Chrome) per exit  [2]
  *   --gap MS         pause between accounts                              [20000]
  *   --panel-gap MS   pause between this panel's API calls (5 req/min)    [14000]
@@ -104,7 +104,7 @@ if (has('help') || has('h')) {
   --count N      accounts to mint, serial                                [1]
   --model <id>   model used for the live gate   [deepseek-ai/DeepSeek-V4-Flash-0731]
   --pool <file>  proxy list, one exit per line (env SEEKAI_PROXIES)    [optional]
-  --tries N      exit candidates screened per account                    [3]
+  --exits N      exit candidates screened per account                    [6]
   --code-timeout S   seconds to wait for the e-mail code                [240]
   --mint-tries N full sign-up attempts (fresh mailbox each) per exit      [2]
   --keys <file>  key file for --verify-only                [keys.txt]
@@ -128,7 +128,7 @@ the SEEKAI_PROXIES env). Without a pool the tool connects DIRECTLY.
 
 const COUNT = Math.max(1, parseInt(arg('count', '1'), 10) || 1);
 const MODEL = arg('model', process.env.SEEKAI_MODEL || DEFAULT_MODEL);
-const TRIES = Math.max(1, parseInt(arg('tries', '3'), 10) || 3);
+const EXITS = Math.max(1, parseInt(arg('exits', '6'), 10) || 6);
 const GAP_MS = Math.max(0, parseInt(arg('gap', '20000'), 10) || 0);
 const TIMEOUT_MS = Math.max(5000, parseInt(arg('timeout', '60000'), 10) || 60000);
 const CODE_TIMEOUT_MS = Math.max(30000, (parseInt(arg('code-timeout', '240'), 10) || 240) * 1000);
@@ -678,7 +678,7 @@ async function mintOnExit(n, exit) {
 }
 
 async function attemptAccount(n, exits, seed) {
-  const limit = Math.min(TRIES, exits.length);
+  const limit = Math.min(EXITS, exits.length);
   for (let t = 0; t < limit; t++) {
     const exit = exits[(seed + t) % exits.length];
     let vet;
